@@ -14,11 +14,11 @@ public class Lexer
     #region Tests
     static void Main (string[] args)
     {
-        Console.Write("Write your mathematic expression here>: ");
-        string sourceCode = Console.ReadLine();
-        var Lexer = new Lexer(sourceCode);
+        // Console.Write("Write your mathematic expression here>: ");
+        // string sourceCode = Console.ReadLine();
+        var Lexer = new Lexer("2^2^(2*2)");
         List <Token> tokens = Lexer.Tokenize();
-        // Console.WriteLine(String.Join('\n', tokens));
+        // Console.WriteLine(String.Join(   '\n', tokens));
         Parser parser = new(tokens);
         double result = parser.Parse();
         Console.WriteLine($"Result>: {result}");

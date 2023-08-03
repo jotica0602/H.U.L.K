@@ -77,10 +77,8 @@ public class Parser{
         while(currentToken.Kind==TokenKind.PowerOperator){
             Token operatorToken = currentToken;
             Next();
-            double nextToken = ParseToken();
+            // double nextToken = ParseToken();
             if(operatorToken.Kind!=TokenKind.LeftParenthesis)
-                expressionResult = Math.Pow(expressionResult,nextToken);
-            else if(operatorToken.Kind==TokenKind.LeftParenthesis)
                 expressionResult = Math.Pow(expressionResult,ParseSum());
             else
                 throw new InvalidOperationException("Syntax Error");
