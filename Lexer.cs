@@ -9,20 +9,21 @@ using System.Xml.Schema;
 // A Lexer walks through the code and splits it into Tokens until it found any meaning
 // So, Lexer:
 // Recieves <code> ------- return Tokens
-class Lexer
+public class Lexer
 {
-
     #region Tests
-    static void Main (string[] args){
-        Console.Write("Type your sample code here: ");
-        string code = Console.ReadLine();
-        var Lexer = new Lexer(code);
+    static void Main (string[] args)
+    {
+        Console.Write("Write your mathematic expression here> ");
+        string sourceCode = Console.ReadLine();
+        var Lexer = new Lexer(sourceCode);
         List <Token> tokens = Lexer.Tokenize();
 
-        foreach(var token in tokens){
-            Console.WriteLine(token);
-        }
+        Parser parser = new(tokens);
+        double result = parser.Parse();
+        Console.WriteLine(result);
     }
+
     #endregion
 
     private readonly string sourceCode;
@@ -115,6 +116,10 @@ class Lexer
             Next();
             return new Token(TokenKind.DivideOperator,_operator.ToString());
         }
+        else if(_operator == '!'){
+            Next();
+            return new Token(TokenKind.NegationOperator,_operator.ToString());
+        }
         else{
             Next();
             return new Token(TokenKind.EqualsOperator,_operator.ToString());
@@ -150,11 +155,15 @@ class Lexer
         }
         else if (punctuator == ','){
             Next();
-            return new Token(TokenKind.Coma,punctuator.ToString());
+            return new Token(TokenKind.Comma,punctuator.ToString());
         }
         else if (punctuator == ';'){
             Next();
             return new Token(TokenKind.Semicolon,punctuator.ToString());
+        }
+        else if (punctuator== ';'){
+            Next();
+            return new Token(TokenKind.Colon,punctuator.ToString());
         }
         else if (punctuator == '"'){
             Next();
@@ -184,7 +193,7 @@ class Lexer
     
     private static bool IsOperator(char currentChar){
         List<char> Operators  = new(){
-            '+', '-', '*', '/', '^', '='
+            '+', '-', '*', '/', '^', '=', '!'
         };
 
         foreach(var _operator in Operators)
@@ -197,7 +206,7 @@ class Lexer
     private static bool IsPunctuator(char currentChar){
         List<char> Punctuators  = new(){
             '(', ')', ';', ',', '{', '}',
-            '[', ']','.','"'
+            '[', ']','.','"',':'
         };
 
         foreach(var puncutator in Punctuators)
@@ -206,18 +215,18 @@ class Lexer
         return false;
     }
 
+
     #endregion
 }
 
 // Token Object
-class Token{
+public class Token{
     public TokenKind Kind { get; private set; }
     public string Value { get; private set; }
     public Token(TokenKind kind, string value){
         Kind = kind;
         Value = value;
     }
-    
     // Show TokenKind and Value
     public override string ToString(){
         return $"{Kind}: {Value}";
@@ -237,6 +246,7 @@ public enum TokenKind{
     MultOperator,
     DivideOperator,
     EqualsOperator,
+    NegationOperator,
 
     // Punctuators
     LeftParenthesis,
@@ -245,11 +255,13 @@ public enum TokenKind{
     RightBracket,
     LeftCurlyBracket,
     RightCurlyBracket,
-    Coma,
+    Comma,
+    Colon,
     Semicolon,
     FullStop,
     Quote,
 
+    EndOfFile,
     Unknown
 }
 
