@@ -14,14 +14,14 @@ public class Lexer
     #region Tests
     static void Main (string[] args)
     {
-        Console.Write("Write your mathematic expression here> ");
+        Console.Write("Write your mathematic expression here>: ");
         string sourceCode = Console.ReadLine();
         var Lexer = new Lexer(sourceCode);
         List <Token> tokens = Lexer.Tokenize();
-
+        // Console.WriteLine(String.Join('\n', tokens));
         Parser parser = new(tokens);
         double result = parser.Parse();
-        Console.WriteLine(result);
+        Console.WriteLine($"Result>: {result}");
     }
 
     #endregion
@@ -119,6 +119,10 @@ public class Lexer
         else if(_operator == '!'){
             Next();
             return new Token(TokenKind.NegationOperator,_operator.ToString());
+        }
+        else if (_operator == '^'){
+            Next();
+            return new Token(TokenKind.PowerOperator,_operator.ToString());
         }
         else{
             Next();
@@ -247,6 +251,7 @@ public enum TokenKind{
     DivideOperator,
     EqualsOperator,
     NegationOperator,
+    PowerOperator,
 
     // Punctuators
     LeftParenthesis,

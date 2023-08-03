@@ -1,107 +1,99 @@
 // After we made our list of Tokens, we need to find the sense of the expression, if it exists.
 public class Parser{
-
+    // This is the List
     private List<Token> tokens;
+    // Current Index
     private int currentTokenIndex;
+    // Current Token
     private Token currentToken;
-    private List<TokenKind> invalidtokens = new List<TokenKind>(){
-        TokenKind.Colon,
-        TokenKind.Comma,
-        TokenKind.Semicolon,
-        TokenKind.FullStop,
-        TokenKind.RightCurlyBracket,
-        TokenKind.Quote,
-        TokenKind.RightBracket
-
-    };
-
-    public Parser(List<Token>tokens){
-        this.tokens = tokens;
+    public Parser(List<Token> tokens){
+        this.tokens=tokens;
         currentTokenIndex=0;
         currentToken=tokens[currentTokenIndex];
     }
 
-    // Now we can Move through our Tokens List
-    private void Next(){
+    // Now we can move through our Tokens List
+    public void Next(){
         currentTokenIndex++;
         if(currentTokenIndex<tokens.Count())
             currentToken=tokens[currentTokenIndex];
-    
         else
-            currentToken= new Token(TokenKind.EndOfFile, "");
+            currentToken=new Token(TokenKind.EndOfFile,"");
     }
 
-    public double Parse(){
-        double result = ParseExpression();
-        
-        // We are not getting out of the list bounds
-        if (currentToken.Kind != TokenKind.EndOfFile)
-            throw new InvalidOperationException("Syntax Error");
-
-        return result;
-    }
-
-
-    private double ParseExpression(){
-        double result = ParseTerm();
-
-        while (currentToken.Kind == TokenKind.PlusOperator || currentToken.Kind == TokenKind.MinusOperator){
-            Token operatorToken = currentToken;
-            Next();
-
-            double term = ParseTerm();
-            if (operatorToken.Kind == TokenKind.PlusOperator)
-                result += term;
-            else if (operatorToken.Kind == TokenKind.MinusOperator)
-                result -= term;
-        }
-
-        return result;
-    }
-
-    private double ParseTerm(){
-
-        double result = ParseNumber();
-
-        while (currentToken.Kind == TokenKind.MultOperator || currentToken.Kind == TokenKind.DivideOperator){
-            Token operatorToken = currentToken;
-            Next();
-
-            double factor = ParseNumber();
-            if (operatorToken.Kind == TokenKind.MultOperator)
-                result *= factor;
-            else if (operatorToken.Kind == TokenKind.DivideOperator)
-                result /= factor;
-        }
-
-        return result;
-    }
-
-    private double ParseNumber(){
-        // if we are looking at a Number Token:
-        // We parse it, return it and move on
-        if (currentToken.Kind == TokenKind.Number){
+    
+    private double ParseToken(){
+        // if the token we are looking at is a number, we parse it, return it and move to the next
+        if(currentToken.Kind==TokenKind.Number){
             double number = double.Parse(currentToken.Value);
+            Next();
+            // Console.WriteLine($"Parsed Number {number}");
+            return number;
+        }
+        else if (currentToken.Kind==TokenKind.LeftParenthesis){
+            Next();
+            double number = ParseSum();
+            if(currentToken.Kind!=TokenKind.RightParenthesis)
+                throw new InvalidOperationException ("Syntax Error");
             Next();
             return number;
         }
-        // if there's a parenthesis we move on and our result will be the expression we've 
-        // gotten so far
-        else if (currentToken.Kind == TokenKind.LeftParenthesis){
-            Next();
-            double result = ParseExpression();
-
-            // if we don't find a right parenthesis it will be a invalid expression
-            if (currentToken.Kind != TokenKind.RightParenthesis)
-                throw new InvalidOperationException("Syntax Error");
-
-            Next();
-            return result;
-        }
-        // any other case will be an invalid expression for now.
-        else{
-            throw new InvalidOperationException("Syntax Error");
-        }
+        else 
+            throw new InvalidOperationException ("Syntax Error");
+        
     }
 
+    private double ParseSum(){
+        double expressionResult = ParseMult(); 
+
+        while(currentToken.Kind==TokenKind.PlusOperator || currentToken.Kind==TokenKind.MinusOperator){
+            Token operatorToken = currentToken;
+            Next();
+            double nextToken = ParseMult();
+            if(operatorToken.Kind==TokenKind.PlusOperator)
+                expressionResult+=nextToken;
+            else if (operatorToken.Kind==TokenKind.MinusOperator)
+                expressionResult-=nextToken;
+
+        }
+        return expressionResult;
+    }
+    private double ParseMult(){
+        double expressionResult = ParsePow();
+        while(currentToken.Kind==TokenKind.MultOperator || currentToken.Kind==TokenKind.DivideOperator){
+            Token operatorToken = currentToken;
+            Next();
+            double nextToken = ParsePow();
+           if(operatorToken.Kind==TokenKind.MultOperator)
+                expressionResult*=nextToken;
+            else if(operatorToken.Kind==TokenKind.DivideOperator)
+                expressionResult/=nextToken;
+        }
+        return expressionResult;
+    }
+
+    private double ParsePow(){
+        double expressionResult = ParseToken();
+        while(currentToken.Kind==TokenKind.PowerOperator){
+            Token operatorToken = currentToken;
+            Next();
+            double nextToken = ParseToken();
+            if(operatorToken.Kind!=TokenKind.LeftParenthesis)
+                expressionResult = Math.Pow(expressionResult,nextToken);
+            else if(operatorToken.Kind==TokenKind.LeftParenthesis)
+                expressionResult = Math.Pow(expressionResult,ParseSum());
+            else
+                throw new InvalidOperationException("Syntax Error");
+        }
+        return expressionResult;
+
+    }
+
+    public double Parse(){
+        double expressionResult = ParseSum();
+        if(currentToken.Kind!=TokenKind.EndOfFile)
+            throw new InvalidOperationException("Syntax Error");
+        return expressionResult;
+    }
+    
 }
