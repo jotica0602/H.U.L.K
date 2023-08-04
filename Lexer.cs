@@ -13,12 +13,12 @@ public class Lexer
 {
     #region Tests
     static void Main (string[] args)
-    {
-        // Console.Write("Write your mathematic expression here>: ");
-        // string sourceCode = Console.ReadLine();
-        var Lexer = new Lexer("2^2^(2*2)");
+    {   
+        Console.Write("Write your mathematic expression here>: ");
+        string sourceCode = Console.ReadLine();
+        var Lexer = new Lexer(sourceCode);
         List <Token> tokens = Lexer.Tokenize();
-        // Console.WriteLine(String.Join(   '\n', tokens));
+        Console.WriteLine(String.Join('\n', tokens));
         Parser parser = new(tokens);
         double result = parser.Parse();
         Console.WriteLine($"Result>: {result}");
@@ -77,7 +77,7 @@ public class Lexer
     private Token NumberKind(){
 
         string number = "";
-        while(currentPosition < sourceCode.Length && char.IsDigit(sourceCode[currentPosition])){
+        while((currentPosition < sourceCode.Length) && (char.IsDigit(sourceCode[currentPosition]) || char.Equals(sourceCode[currentPosition],','))){
             number += sourceCode[currentPosition];
             currentPosition++;
         }
@@ -265,6 +265,10 @@ public enum TokenKind{
     Semicolon,
     FullStop,
     Quote,
+
+    // KeyWords
+    letKeyWord,
+    inKeyWord,
 
     EndOfFile,
     Unknown

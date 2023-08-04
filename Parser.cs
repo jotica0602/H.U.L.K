@@ -27,7 +27,7 @@ public class Parser{
         if(currentToken.Kind==TokenKind.Number){
             double number = double.Parse(currentToken.Value);
             Next();
-            // Console.WriteLine($"Parsed Number {number}");
+            Console.WriteLine($"Parsed Number {number}");
             return number;
         }
         else if (currentToken.Kind==TokenKind.LeftParenthesis){
