@@ -11,17 +11,21 @@ using System.Xml.Schema;
 // Recieves <code> ------- return Tokens
 public class Lexer
 {
-    #region Tests
+    #region Test Section
     static void Main (string[] args)
     {   
-        Console.Write("Write your mathematic expression here>: ");
+        Console.Write("Write your arithmetic expression here>: ");
         string sourceCode = Console.ReadLine();
+
         var Lexer = new Lexer(sourceCode);
+
         List <Token> tokens = Lexer.Tokenize();
-        Console.WriteLine(String.Join('\n', tokens));
+        // Console.WriteLine(String.Join('\n', tokens));
+
         Parser parser = new(tokens);
-        double result = parser.Parse();
-        Console.WriteLine($"Result>: {result}");
+        
+        Console.WriteLine($"Result>: {parser.Parse()}");
+        
     }
 
     #endregion
@@ -51,7 +55,6 @@ public class Lexer
                 currentPosition++;
                 continue;
             }
-
             // Identifiers
             if (IsLetter(currentChar))
                 tokens.Add(IdKind());
@@ -72,6 +75,7 @@ public class Lexer
         }
         return tokens;
     }
+   
     # region TokenKind Adder Functions
 
     private Token NumberKind(){
@@ -93,8 +97,11 @@ public class Lexer
             idkind+=sourceCode[currentPosition];
             currentPosition++;
         }
-
-        return new Token(TokenKind.Identifier, idkind);
+        if(IsKeyWord(idkind)){
+            return KeyWord(idkind);
+        }
+        else 
+            return new Token(TokenKind.Identifier, idkind);
     }
 
     private Token OperatorKind(){
@@ -179,6 +186,13 @@ public class Lexer
         }
     }
 
+    private Token KeyWord(string idkind){
+        if(idkind == "let")
+            return new Token(TokenKind.letKeyWord,idkind);
+        else
+            return new Token(TokenKind.inKeyWord, idkind);
+    }
+
     #endregion
 
     #region Utility Functions 
@@ -219,6 +233,18 @@ public class Lexer
         return false;
     }
 
+    private static bool IsKeyWord(string idkind){
+        List<string> keywords = new(){
+            "let",
+            "in"
+        };
+        foreach(var keyword in keywords)
+            if(idkind == keyword)
+                return true;
+        return false;
+    }
+
+    
 
     #endregion
 }
@@ -240,35 +266,24 @@ public class Token{
 // Token Kinds
 
 public enum TokenKind{
-    
+    // Identifiers
     Identifier,
+    // KeyWords
+    letKeyWord,inKeyWord,
+    
     Number,
 
     //Operators
-    PlusOperator,
-    MinusOperator,
-    MultOperator,
-    DivideOperator,
-    EqualsOperator,
-    NegationOperator,
-    PowerOperator,
+    PlusOperator,   MinusOperator,  MultOperator, DivideOperator,
+    EqualsOperator, NegationOperator,  PowerOperator,
 
     // Punctuators
-    LeftParenthesis,
-    RightParenthesis,
-    LeftBracket,
-    RightBracket,
-    LeftCurlyBracket,
-    RightCurlyBracket,
-    Comma,
-    Colon,
-    Semicolon,
-    FullStop,
+    LeftParenthesis,    RightParenthesis,
+    LeftBracket,        RightBracket,
+    LeftCurlyBracket,   RightCurlyBracket,
+    ////////////////////////////////////
+    Comma,  Colon,  Semicolon,  FullStop,
     Quote,
-
-    // KeyWords
-    letKeyWord,
-    inKeyWord,
 
     EndOfFile,
     Unknown
