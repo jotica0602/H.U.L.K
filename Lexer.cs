@@ -14,17 +14,33 @@ public class Lexer
     #region Test Section
     static void Main(string[] args)
     {
-        Console.Write("Write your arithmetic expression here>: ");
-        string sourceCode = Console.ReadLine();
-        // try let a = 2^(3+2)^2, b = 3*4 in a*b;
-        var Lexer = new Lexer(sourceCode);
+        while (true)
+        {
+            try
+            {
+                Console.Write("> ");
+                string sourceCode = Console.ReadLine();
 
-        List<Token> tokens = Lexer.Tokenize();
-        // Console.WriteLine(String.Join('\n', tokens));
-        Parser parser = new(tokens);
-        parser.Parse();
+                var Lexer = new Lexer("let a = 7 in let a =7*6 in a;");
+                if (Lexer.sourceCode == string.Empty)
+                {
+                    Diagnostics.Errors.Add("Empty Entry");
+                    throw new Exception();
+                }
+                List<Token> tokens = Lexer.Tokenize();
 
-        parser.variables.Clear();
+                Parser parser = new(tokens);
+                parser.Parse();
+
+                parser.variables.Clear();
+            }
+            catch (Exception)
+            {
+                Console.WriteLine(Diagnostics.Errors[0]);
+                Diagnostics.Errors.Clear();
+                continue;
+            }
+        }
     }
 
     #endregion
@@ -80,9 +96,15 @@ public class Lexer
             // unknown tokens
             else
             {
-                tokens.Add(new Token(TokenKind.Unknown, currentChar.ToString()));
+                tokens.Add(new Token(TokenKind.Unknown, currentChar.ToString(), null));
+                Diagnostics.Errors.Add($"!lexical error: \"{tokens.Last().Value}\" is not a valid token");
                 currentPosition++;
             }
+        }
+        if (tokens.Last().Name != ";")
+        {
+            Diagnostics.Errors.Add("!syntax error: expression must end with \";\"");
+            throw new Exception();
         }
         return tokens;
     }
@@ -102,7 +124,7 @@ public class Lexer
         }
         number = number.Replace('.', ',');
         // Token (Token Kind, Number Value)
-        return new Token(TokenKind.Number, number);
+        return new Token(TokenKind.Number, null, double.Parse(number));
     }
 
     private Token IdKind()
@@ -120,7 +142,7 @@ public class Lexer
             return KeyWord(idkind);
         }
         else
-            return new Token(TokenKind.Identifier, idkind);
+            return new Token(TokenKind.Identifier, idkind, null);
     }
 
     private Token StringKind()
@@ -133,7 +155,7 @@ public class Lexer
             currentPosition++;
         }
         Next();
-        return new Token(TokenKind.String, str);
+        return new Token(TokenKind.String, null, str);
     }
 
     private Token OperatorKind()
@@ -143,37 +165,37 @@ public class Lexer
         if (_operator == '+')
         {
             Next();
-            return new Token(TokenKind.PlusOperator, _operator.ToString());
+            return new Token(TokenKind.PlusOperator, _operator.ToString(), null);
         }
         else if (_operator == '-')
         {
             Next();
-            return new Token(TokenKind.MinusOperator, _operator.ToString());
+            return new Token(TokenKind.MinusOperator, _operator.ToString(), null);
         }
         else if (_operator == '*')
         {
             Next();
-            return new Token(TokenKind.MultOperator, _operator.ToString());
+            return new Token(TokenKind.MultOperator, _operator.ToString(), null);
         }
         else if (_operator == '/')
         {
             Next();
-            return new Token(TokenKind.DivideOperator, _operator.ToString());
+            return new Token(TokenKind.DivideOperator, _operator.ToString(), null);
         }
         else if (_operator == '^')
         {
             Next();
-            return new Token(TokenKind.Power, _operator.ToString());
+            return new Token(TokenKind.Power, _operator.ToString(), null);
         }
         else if (_operator == '@')
         {
             Next();
-            return new Token(TokenKind.Concat, _operator.ToString());
+            return new Token(TokenKind.Concat, _operator.ToString(), null);
         }
         else
         {
             Next();
-            return new Token(TokenKind.EqualsOperator, _operator.ToString());
+            return new Token(TokenKind.Equals, _operator.ToString(), null);
         }
     }
 
@@ -184,48 +206,48 @@ public class Lexer
         if (punctuator == '(')
         {
             Next();
-            return new Token(TokenKind.LeftParenthesis, punctuator.ToString());
+            return new Token(TokenKind.LeftParenthesis, punctuator.ToString(), null);
         }
         else if (punctuator == ')')
         {
             Next();
-            return new Token(TokenKind.RightParenthesis, punctuator.ToString());
+            return new Token(TokenKind.RightParenthesis, punctuator.ToString(), null);
         }
         else if (punctuator == ',')
         {
             Next();
-            return new Token(TokenKind.Comma, punctuator.ToString());
+            return new Token(TokenKind.Comma, punctuator.ToString(), null);
         }
         else if (punctuator == ';')
         {
             Next();
-            return new Token(TokenKind.Semicolon, punctuator.ToString());
+            return new Token(TokenKind.Semicolon, punctuator.ToString(), null);
         }
         else if (punctuator == ':')
         {
             Next();
-            return new Token(TokenKind.Colon, punctuator.ToString());
+            return new Token(TokenKind.Colon, punctuator.ToString(), null);
         }
         else if (punctuator == '"')
         {
             Next();
-            return new Token(TokenKind.Quote, punctuator.ToString());
+            return new Token(TokenKind.Quote, punctuator.ToString(), null);
         }
         else
         {
             Next();
-            return new Token(TokenKind.FullStop, punctuator.ToString());
+            return new Token(TokenKind.FullStop, punctuator.ToString(), null);
         }
     }
 
     private Token KeyWord(string idkind)
     {
         if (idkind == "let")
-            return new Token(TokenKind.letKeyWord, idkind);
+            return new Token(TokenKind.letKeyWord, idkind, null);
         else if (idkind == "function")
-            return new Token(TokenKind.function, idkind);
+            return new Token(TokenKind.function, idkind, null);
         else
-            return new Token(TokenKind.inKeyWord, idkind);
+            return new Token(TokenKind.inKeyWord, idkind, null);
     }
 
     #endregion
@@ -295,29 +317,21 @@ public class Lexer
 public class Token
 {
     public TokenKind Kind { get; set; }
-    public string Value { get; set; }
-    public Token(TokenKind kind, string value)
+    public string Name { get; set; }
+    public object Value { get; set; }
+    public Token(TokenKind kind, string name, object value)
     {
         Kind = kind;
+        Name = name;
         Value = value;
+
     }
     // Show TokenKind and Value
     public override string ToString()
     {
-        return $"{Kind}: {Value}";
-    }
-}
-
-public class VarToken : Token
-{
-    public object VarValue { get; set; }
-    public VarToken(TokenKind kind, string value, object varValue) : base(kind, value)
-    {
-        VarValue = varValue;
-    }
-    public override string ToString()
-    {
-        return $"{Kind}Kind Name:{Value} VarValue: {VarValue}";
+        if (Name == null) return $"{Kind}: {Value}";
+        else if (Value == null) return $"{Kind}: {Name}";
+        else return $"{Kind}: {Name} = {Value}";
     }
 }
 
@@ -337,7 +351,7 @@ public enum TokenKind
     Number,
     //Operators
     PlusOperator, MinusOperator, MultOperator, DivideOperator,
-    Equals, Negation, Power, Concat, EqualsOperator,
+    Equals, Negation, Power, Concat,
     // Punctuators
     LeftParenthesis, RightParenthesis,
     LeftBracket, RightBracket,
@@ -351,5 +365,7 @@ public enum TokenKind
 }
 #endregion
 
-
-
+public class Diagnostics
+{
+    public static List<string> Errors = new List<string>();
+}

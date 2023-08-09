@@ -10,7 +10,8 @@ public class Parser
     // Current Token
     private Token currentToken;
     // VarList to keep record of created Variables
-    public List<VarToken> variables = new List<VarToken>();
+    public List<Token> variables = new List<Token>();
+    //  Errors
 
     // Previous Token
     public Parser(List<Token> tokens)
@@ -27,7 +28,7 @@ public class Parser
         if (currentTokenIndex < tokens.Count())
             currentToken = tokens[currentTokenIndex];
         else
-            currentToken = new Token(TokenKind.EndOfFile, "");
+            currentToken = new Token(TokenKind.EndOfFile, "", null);
     }
 
     #endregion
@@ -39,7 +40,7 @@ public class Parser
         // if the token we are looking at is a number, we parse it, return it and move to the next
         if (currentToken.Kind == TokenKind.Number)
         {
-            double factor = double.Parse(currentToken.Value);
+            double factor = (double)currentToken.Value;
             Next();
             return factor;
         }
@@ -47,28 +48,35 @@ public class Parser
         // same with strings
         else if (currentToken.Kind == TokenKind.String)
         {
-            string str = currentToken.Value;
+            string str = (string)currentToken.Value;
             Next();
             return str;
         }
 
-        // if there is an identifier, we check if it is a variable and return its value
+        // if there is an identifier, we check if it is an existent variable and return its value
         else if (currentToken.Kind == TokenKind.Identifier)
         {
             object factor = null;
             bool exists = false;
             foreach (var variable in variables)
             {
-                if (currentToken.Value == variable.Value)
+                if (currentToken.Name == variable.Name)
                 {
-                    factor = variable.VarValue;
                     exists = true;
+                    factor = currentToken.Value;
+                    currentToken.Kind = TokenKind.Variable;
                     break;
                 }
             }
 
             Next();
-            if (exists == false) throw new Exception($"Variable does not exists: {tokens[currentTokenIndex]}");
+            if (exists == false)
+            {
+                Diagnostics.Errors.Add($"!semantic error: variable \"{tokens[currentTokenIndex - 1].Name}\" does not exists ");
+                throw new Exception();
+            }
+
+
             else return factor;
         }
 
@@ -93,13 +101,16 @@ public class Parser
             return factor;
         }
         // if we find a left parenthesis we will parse the next expression until we find a right parenthesis, if we don't find any
-        // it will be a syntax error.
+        // it will be a syntax.
         else if (currentToken.Kind == TokenKind.LeftParenthesis)
         {
             Next();
             object factor = ParseExpression();
             if (currentToken.Kind != TokenKind.RightParenthesis)
-                throw new InvalidOperationException("Syntax Error");
+            {
+                Diagnostics.Errors.Add($"!syntax error: ) is missing after \"{tokens[currentTokenIndex - 1]}\"");
+                throw new Exception();
+            }
             Next();
             return factor;
         }
@@ -111,63 +122,11 @@ public class Parser
             double factor = 0 - (double)ParseFactor();
             return factor;
         }
-
-        else
-            throw new InvalidOperationException("Syntax Error");
-    }
-
-    private object ParseExpression()
-    {
-        object expressionResult = ParseTerm();
-        // if the expression is a string we  will 
-        if (expressionResult is string)
-        {
-            while (currentToken.Kind == TokenKind.Concat)
-            {
-                Next();
-                string nextToken = (string)ParseTerm();
-                expressionResult += nextToken;
-            }
-            return expressionResult;
-        }
+        // for missing expressions to operate with
         else
         {
-            double _expressionResult = (double)expressionResult;
-            while (currentToken.Kind == TokenKind.PlusOperator || currentToken.Kind == TokenKind.MinusOperator)
-            {
-                Token operatorToken = currentToken;
-                Next();
-                double nextToken = (double)ParseTerm();
-                if (operatorToken.Kind == TokenKind.PlusOperator)
-                    _expressionResult += nextToken;
-                else if (operatorToken.Kind == TokenKind.MinusOperator)
-                    _expressionResult -= nextToken;
-            }
-            return _expressionResult;
-        }
-    }
-    private object ParseTerm()
-    {
-        object term = _ParseTerm();
-        if (term is string)
-            return term;
-        else
-        {
-            double _term = (double)term;
-            while (currentToken.Kind == TokenKind.MultOperator || currentToken.Kind == TokenKind.DivideOperator)
-            {
-                Token operatorToken = currentToken;
-                Next();
-
-                double nextToken = (double)_ParseTerm();
-
-                if (operatorToken.Kind == TokenKind.MultOperator)
-                    _term *= nextToken;
-
-                else if (operatorToken.Kind == TokenKind.DivideOperator)
-                    _term /= nextToken;
-            }
-            return _term;
+            Diagnostics.Errors.Add($"!syntax error: factor or expression is missing after \"{tokens[currentTokenIndex - 1].Name}\"");
+            throw new Exception();
         }
     }
 
@@ -183,13 +142,102 @@ public class Parser
             {
                 Token operatorToken = currentToken;
                 Next();
-                if (operatorToken.Kind != TokenKind.LeftParenthesis)
-                    _term = Math.Pow((double)_term, (double)ParseExpression());
+                object nextToken = ParseExpression();
+
+                if (operatorToken.Kind != TokenKind.LeftParenthesis && nextToken is double)
+                    _term = Math.Pow((double)_term, (double)nextToken);
                 else
-                    throw new InvalidOperationException("Syntax Error");
+                {
+                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between string and number");
+                    throw new InvalidOperationException();
+                }
             }
             return _term;
         }
+    }
+
+    private object ParseTerm()
+    {
+        object term = _ParseTerm();
+        if (term is string)
+            return term;
+
+        else
+        {
+            double _term = (double)term;
+            while (currentToken.Kind == TokenKind.MultOperator || currentToken.Kind == TokenKind.DivideOperator)
+            {
+                Token operatorToken = currentToken;
+                Next();
+
+                object nextToken = ParseExpression();
+
+                if (operatorToken.Kind == TokenKind.MultOperator && nextToken is double)
+                    _term *= (double)nextToken;
+
+                else if (operatorToken.Kind == TokenKind.DivideOperator && nextToken is double)
+                    _term /= (double)nextToken;
+                else
+                {
+                    Diagnostics.Errors.Add($"!semantic error: {operatorToken} cannot be used between string and number");
+                    throw new Exception();
+                }
+            }
+            return _term;
+        }
+    }
+
+    private object _ParseExpression()
+    {
+        object expressionResult = ParseTerm();
+        // if the expression is a string we  will 
+        if (expressionResult is string)
+            return expressionResult;
+
+        else
+        {
+            double _expressionResult = (double)expressionResult;
+            while (currentToken.Kind == TokenKind.PlusOperator || currentToken.Kind == TokenKind.MinusOperator)
+            {
+                Token operatorToken = currentToken;
+                Next();
+                object nextToken = _ParseExpression();
+                if (operatorToken.Kind == TokenKind.PlusOperator && nextToken is double)
+                    _expressionResult += (double)nextToken;
+                else if (operatorToken.Kind == TokenKind.MinusOperator && nextToken is double)
+                    _expressionResult -= (double)nextToken;
+                else
+                {
+                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between number and string");
+                    throw new Exception();
+                }
+            }
+
+            return _expressionResult;
+        }
+    }
+
+    private object ParseExpression()
+    {
+        object expressionResult = _ParseExpression();
+        string stringExpression = null;
+        // string stringExpression = expressionResult.ToString();
+        if (expressionResult is string && (currentToken.Kind == TokenKind.PlusOperator || currentToken.Kind == TokenKind.MinusOperator || currentToken.Kind == TokenKind.MultOperator || currentToken.Kind == TokenKind.DivideOperator || currentToken.Kind == TokenKind.Power))
+        {
+            Diagnostics.Errors.Add($"!semantic: error {currentToken} cannot be used between string and number");
+            throw new Exception();
+        }
+
+        // else if (expressionResult is string && (currentToken.Kind))
+        while (currentToken.Kind == TokenKind.Concat)
+        {
+            Next();
+            stringExpression = expressionResult.ToString();
+            stringExpression += ParseExpression().ToString();
+            return stringExpression;
+
+        }
+        return expressionResult;
     }
 
     #endregion
@@ -200,40 +248,73 @@ public class Parser
         if (tokens.Count() == 0)
         {
             variables.Clear();
-            throw new Exception("There's nothing to parse");
+            Diagnostics.Errors.Add("There's nothing to parse");
+            throw new Exception();
         }
-        Console.WriteLine(ParseExpression());
-
-        if (currentToken.Kind == TokenKind.EndOfFile)
+        else if (tokens.Count() == 1)
         {
             variables.Clear();
-            throw new InvalidOperationException($"Syntax Error: ; is missing after {currentToken.Value}");
+            Diagnostics.Errors.Add($"!syntax error invalid expression \"{currentToken.Value}\"");
+            throw new Exception();
+
+        }
+        else if (tokens.Count() > 1)
+        {
+            Console.WriteLine(ParseExpression());
+            if (currentToken.Kind != TokenKind.Semicolon)
+            {
+                variables.Clear();
+                Diagnostics.Errors.Add($"!syntax error: operator is missing after \"{tokens[currentTokenIndex - 1]}\"");
+                throw new Exception();
+            }
         }
     }
 
     #endregion
 
     // Create Variable Utility Function
-    private void CreateVar(List<VarToken> variables)
+    private void CreateVar(List<Token> variables)
     {
         Next();
         if (currentToken.Kind != TokenKind.Identifier)
-            throw new Exception($"Syntax Error: you have not defined an identifier after {currentToken.Value}");
-        int vartokenindex = currentTokenIndex;
+        {
+            Diagnostics.Errors.Add($"!syntax error: variable not defined after: \"{tokens[currentTokenIndex - 1]}\" ");
+            throw new Exception();
+        }
+        int Tokenindex = currentTokenIndex;
 
         Next();
-        if (currentToken.Kind != TokenKind.EqualsOperator)
-            throw new Exception($"Syntax Error: = is missing after {tokens[currentTokenIndex - 1]}");
+        if (currentToken.Kind != TokenKind.Equals)
+        {
+            Diagnostics.Errors.Add($"!syntax error: = is missing after \"{tokens[currentTokenIndex - 1].Name}\"");
+            throw new Exception();
+        }
 
         Next();
-        VarToken variable = new VarToken(TokenKind.Variable, tokens[vartokenindex].Value, ParseExpression());
-        // tokens[vartokenindex]=new VarToken(TokenKind.Variable,tokens[vartokenindex].Value,ParseExpression());
+        if (currentToken.Kind != TokenKind.Number && currentToken.Kind != TokenKind.String && currentToken.Kind != TokenKind.Identifier && currentToken.Kind != TokenKind.LeftParenthesis)
+        {
+            Diagnostics.Errors.Add($"!syntax error: variables must have a value");
+            throw new Exception();
+        }
+        Token variable = new Token(TokenKind.Variable, tokens[Tokenindex].Name, ParseExpression());
+
         variables.Add(variable);
+
+        foreach (var token in tokens)
+        {
+            if (token.Name == variable.Name)
+            {
+                token.Value = variable.Value;
+            }
+        }
 
         if (currentToken.Kind == TokenKind.Comma)
             CreateVar(variables);
+
         if (currentToken.Kind != TokenKind.inKeyWord)
-            throw new Exception($"Syntax Error: in is missing after {tokens[currentTokenIndex - 1]}");
+        {
+            Diagnostics.Errors.Add($"!syntax error: \"in\" is missing after Token:\"{tokens[currentTokenIndex - 1]}\"");
+            throw new Exception();
+        }
     }
 }
-
