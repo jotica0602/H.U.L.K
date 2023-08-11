@@ -18,17 +18,16 @@ public class Lexer
         {
             try
             {
-                Console.Write("> ");
-                string sourceCode = Console.ReadLine();
+                Console.Write(">");
+                string sourceCode = Console.ReadLine()!;
 
-                var Lexer = new Lexer("let a = 7 in let a =7*6 in a;");
+                var Lexer = new Lexer(sourceCode);
                 if (Lexer.sourceCode == string.Empty)
                 {
                     Diagnostics.Errors.Add("Empty Entry");
                     throw new Exception();
                 }
                 List<Token> tokens = Lexer.Tokenize();
-
                 Parser parser = new(tokens);
                 parser.Parse();
 
@@ -46,7 +45,7 @@ public class Lexer
     #endregion
 
     #region  Lexer Object
-    private readonly string sourceCode;
+    public readonly string sourceCode;
     private int currentPosition;
 
     public Lexer(string sourceCode)
@@ -96,7 +95,7 @@ public class Lexer
             // unknown tokens
             else
             {
-                tokens.Add(new Token(TokenKind.Unknown, currentChar.ToString(), null));
+                tokens.Add(new Token(TokenKind.Unknown, currentChar.ToString(), null!));
                 Diagnostics.Errors.Add($"!lexical error: \"{tokens.Last().Value}\" is not a valid token");
                 currentPosition++;
             }
@@ -124,7 +123,7 @@ public class Lexer
         }
         number = number.Replace('.', ',');
         // Token (Token Kind, Number Value)
-        return new Token(TokenKind.Number, null, double.Parse(number));
+        return new Token(TokenKind.Number, null!, double.Parse(number));
     }
 
     private Token IdKind()
@@ -142,7 +141,7 @@ public class Lexer
             return KeyWord(idkind);
         }
         else
-            return new Token(TokenKind.Identifier, idkind, null);
+            return new Token(TokenKind.Identifier, idkind, null!);
     }
 
     private Token StringKind()
@@ -155,7 +154,7 @@ public class Lexer
             currentPosition++;
         }
         Next();
-        return new Token(TokenKind.String, null, str);
+        return new Token(TokenKind.String, null!, str);
     }
 
     private Token OperatorKind()
@@ -165,89 +164,149 @@ public class Lexer
         if (_operator == '+')
         {
             Next();
-            return new Token(TokenKind.PlusOperator, _operator.ToString(), null);
+            return new Token(TokenKind.PlusOperator, _operator.ToString(), null!);
         }
+
         else if (_operator == '-')
         {
             Next();
-            return new Token(TokenKind.MinusOperator, _operator.ToString(), null);
+            return new Token(TokenKind.MinusOperator, _operator.ToString(), null!);
         }
         else if (_operator == '*')
         {
             Next();
-            return new Token(TokenKind.MultOperator, _operator.ToString(), null);
+            return new Token(TokenKind.MultOperator, _operator.ToString(), null!);
         }
         else if (_operator == '/')
         {
             Next();
-            return new Token(TokenKind.DivideOperator, _operator.ToString(), null);
+            return new Token(TokenKind.DivideOperator, _operator.ToString(), null!);
         }
         else if (_operator == '^')
         {
             Next();
-            return new Token(TokenKind.Power, _operator.ToString(), null);
+            return new Token(TokenKind.Power, _operator.ToString(), null!);
+        }
+        else if (_operator == '%')
+        {
+            Next();
+            return new Token(TokenKind.Modulus, _operator.ToString(), null!);
         }
         else if (_operator == '@')
         {
             Next();
-            return new Token(TokenKind.Concat, _operator.ToString(), null);
+            return new Token(TokenKind.Concat, _operator.ToString(), null!);
+        }
+        else if (_operator == '<' && LookAhead(1) == '=')
+        {
+            Next();
+            Next();
+            return new Token(TokenKind.LessOrEquals, "<=", null!);
+        }
+        else if (_operator == '<')
+        {
+            Next();
+            return new Token(TokenKind.LessThan, _operator.ToString(), null!);
+        }
+        else if (_operator == '>' && LookAhead(1) == '=')
+        {
+            Next();
+            Next();
+            return new Token(TokenKind.GreatherOrEquals, ">=", null!);
+        }
+        else if (_operator == '>')
+        {
+            Next();
+            return new Token(TokenKind.GreatherThan, _operator.ToString(), null!);
+        }
+        else if (_operator == '!' && LookAhead(1) == '=')
+        {
+            Next();
+            Next();
+            return new Token(TokenKind.NotEquals, "!=", null!);
+        }
+        else if (_operator == '!')
+        {
+            Next();
+            return new Token(TokenKind.Not, _operator.ToString(), null!);
+        }
+        else if (_operator == '=' && LookAhead(1) == '=')
+        {
+            Next();
+            Next();
+            return new Token(TokenKind.EqualsTo, "==", null!);
+        }
+        else if (_operator == '=')
+        {
+            Next();
+            return new Token(TokenKind.Equals, null!, null!);
+        }
+        else if (_operator == '&')
+        {
+            Next();
+            return new Token(TokenKind.And, null!, null!);
         }
         else
         {
             Next();
-            return new Token(TokenKind.Equals, _operator.ToString(), null);
+            return new Token(TokenKind.Or, _operator.ToString(), null!);
         }
     }
 
     private Token PuncutatorKind()
     {
         char punctuator = sourceCode[currentPosition];
+        switch (punctuator)
+        {
+            case '(':
+                Next();
+                return new Token(TokenKind.LeftParenthesis, punctuator.ToString(), null!);
 
-        if (punctuator == '(')
-        {
-            Next();
-            return new Token(TokenKind.LeftParenthesis, punctuator.ToString(), null);
-        }
-        else if (punctuator == ')')
-        {
-            Next();
-            return new Token(TokenKind.RightParenthesis, punctuator.ToString(), null);
-        }
-        else if (punctuator == ',')
-        {
-            Next();
-            return new Token(TokenKind.Comma, punctuator.ToString(), null);
-        }
-        else if (punctuator == ';')
-        {
-            Next();
-            return new Token(TokenKind.Semicolon, punctuator.ToString(), null);
-        }
-        else if (punctuator == ':')
-        {
-            Next();
-            return new Token(TokenKind.Colon, punctuator.ToString(), null);
-        }
-        else if (punctuator == '"')
-        {
-            Next();
-            return new Token(TokenKind.Quote, punctuator.ToString(), null);
-        }
-        else
-        {
-            Next();
-            return new Token(TokenKind.FullStop, punctuator.ToString(), null);
+            case ')':
+                Next();
+                return new Token(TokenKind.RightParenthesis, punctuator.ToString(), null!);
+
+            case ',':
+                Next();
+                return new Token(TokenKind.Comma, punctuator.ToString(), null!);
+
+            case ';':
+                Next();
+                return new Token(TokenKind.Semicolon, punctuator.ToString(), null!);
+
+            case ':':
+                Next();
+                return new Token(TokenKind.Colon, punctuator.ToString(), null!);
+
+            case '"':
+                Next();
+                return new Token(TokenKind.Quote, punctuator.ToString(), null!);
+
+            default:
+                Next();
+                return new Token(TokenKind.FullStop, punctuator.ToString(), null!);
         }
     }
 
     private Token KeyWord(string idkind)
     {
-        if (idkind == "let")
-            return new Token(TokenKind.letKeyWord, idkind, null);
-        else if (idkind == "function")
-            return new Token(TokenKind.function, idkind, null);
-        else
-            return new Token(TokenKind.inKeyWord, idkind, null);
+        switch (idkind)
+        {
+            case "let":
+                return new Token(TokenKind.letKeyWord, null!, null!);
+            case "in":
+                return new Token(TokenKind.inKeyWord, null!, null!);
+            case "function":
+                return new Token(TokenKind.functionKeyWord, null!, null!);
+            case "true":
+                return new Token(TokenKind.trueKeyWord, null!, true);
+            case "false":
+                return new Token(TokenKind.falseKeyWord, null!, false);
+            case "if":
+                return new Token(TokenKind.ifKeyWord, null!, null!);
+            default:
+                return new Token(TokenKind.elseKeyWord, null!, null!);
+        }
     }
 
     #endregion
@@ -257,6 +316,10 @@ public class Lexer
     private void Next()
     {
         currentPosition++;
+    }
+    private char LookAhead(int positions)
+    {
+        return sourceCode[currentPosition + positions];
     }
 
     private static bool IsLetter(char c)
@@ -271,9 +334,10 @@ public class Lexer
 
     private static bool IsOperator(char currentChar)
     {
-        List<char> Operators = new(){
-            '+', '-', '*', '/', '^', '=', '!', '@',
-            '='
+        List<char> Operators = new()
+        {
+            '+', '-', '*', '/', '^','%','@',
+            '=','<','>','!','|','&'
         };
 
         foreach (var _operator in Operators)
@@ -285,7 +349,8 @@ public class Lexer
 
     private static bool IsPunctuator(char currentChar)
     {
-        List<char> Punctuators = new(){
+        List<char> Punctuators = new()
+        {
             '(', ')', ';', ',', '{', '}',
             '[', ']','.','"',':'
         };
@@ -298,11 +363,13 @@ public class Lexer
 
     private static bool IsKeyWord(string idkind)
     {
-        List<string> keywords = new(){
+        List<string> keywords = new()
+        {
             "let", "function",  "else",
             "in" , "if",        "true",
             "false"
         };
+
         foreach (var keyword in keywords)
             if (idkind == keyword)
                 return true;
@@ -310,62 +377,4 @@ public class Lexer
     }
 
     #endregion
-}
-
-# region Token Objects
-// Token Object
-public class Token
-{
-    public TokenKind Kind { get; set; }
-    public string Name { get; set; }
-    public object Value { get; set; }
-    public Token(TokenKind kind, string name, object value)
-    {
-        Kind = kind;
-        Name = name;
-        Value = value;
-
-    }
-    // Show TokenKind and Value
-    public override string ToString()
-    {
-        if (Name == null) return $"{Kind}: {Value}";
-        else if (Value == null) return $"{Kind}: {Name}";
-        else return $"{Kind}: {Name} = {Value}";
-    }
-}
-
-// Token Kinds
-
-public enum TokenKind
-{
-    // Identifiers
-    Identifier,
-    // Variable
-    Variable,
-    // KeyWords
-    letKeyWord, inKeyWord, function,
-    // Strings
-    String,
-    // Number
-    Number,
-    //Operators
-    PlusOperator, MinusOperator, MultOperator, DivideOperator,
-    Equals, Negation, Power, Concat,
-    // Punctuators
-    LeftParenthesis, RightParenthesis,
-    LeftBracket, RightBracket,
-    LeftCurlyBracket, RightCurlyBracket,
-    ////////////////////////////////////
-    Comma, Colon, Semicolon, FullStop,
-    Quote,
-
-    EndOfFile,
-    Unknown
-}
-#endregion
-
-public class Diagnostics
-{
-    public static List<string> Errors = new List<string>();
 }
