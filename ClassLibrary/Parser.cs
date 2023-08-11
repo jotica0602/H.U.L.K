@@ -99,8 +99,9 @@ public class Parser
             bool evaluation = EvaluateIfExpression();
             if (evaluation == true)
             {
+                Console.WriteLine(currentTokenIndex);
                 object ifInstruction = ParseExpression();
-                Next((tokens.Count()-1)-currentTokenIndex);
+                Next(tokens.Count()-1-currentTokenIndex);
                 return ifInstruction;
             }
             else
@@ -147,7 +148,7 @@ public class Parser
             object factor = ParseExpression();
             if (currentToken.Kind != TokenKind.RightParenthesis)
             {
-                Diagnostics.Errors.Add($"!syntax error: ) is missing after \"{tokens[currentTokenIndex - 1]}\"");
+                Diagnostics.Errors.Add($"!syntax error: ) is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
                 throw new Exception();
             }
             Next(1);
@@ -164,7 +165,7 @@ public class Parser
         // for missing expressions to operate with
         else
         {
-            Diagnostics.Errors.Add($"!syntax error: factor or expression is missing after \"{tokens[currentTokenIndex - 1]}\"");
+            Diagnostics.Errors.Add($"!syntax error: factor or expression is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
             throw new Exception();
         }
     }
@@ -189,7 +190,7 @@ public class Parser
                     _term = Math.Pow((double)_term, (double)nextToken);
                 else
                 {
-                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between string and number");
+                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between string and number index: {currentTokenIndex - 1}");
                     throw new InvalidOperationException();
                 }
             }
@@ -223,7 +224,7 @@ public class Parser
                     _term %= (double)nextToken;
                 else
                 {
-                    Diagnostics.Errors.Add($"!semantic error: {operatorToken} cannot be used between string and number");
+                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between string and number index: {currentTokenIndex - 1}");
                     throw new Exception();
                 }
             }
@@ -253,7 +254,7 @@ public class Parser
                     _expressionResult -= (double)nextToken;
                 else
                 {
-                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between number and string");
+                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between number and string index: {currentTokenIndex - 1}");
                     throw new Exception();
                 }
             }
@@ -269,7 +270,7 @@ public class Parser
         // string stringExpression = expressionResult.ToString();
         if (expressionResult is string && (currentToken.Kind == TokenKind.PlusOperator || currentToken.Kind == TokenKind.MinusOperator || currentToken.Kind == TokenKind.MultOperator || currentToken.Kind == TokenKind.DivideOperator || currentToken.Kind == TokenKind.Power))
         {
-            Diagnostics.Errors.Add($"!semantic: error {currentToken} cannot be used between string and number");
+            Diagnostics.Errors.Add($"!semantic: error \"{currentToken}\" cannot be used between string and number index: {currentTokenIndex - 1}");
             throw new Exception();
         }
 
@@ -299,7 +300,7 @@ public class Parser
             object expression = EvaluateBooleanExpression();
             if (currentToken.Kind != TokenKind.RightParenthesis)
             {
-                Diagnostics.Errors.Add($"!syntax error: ) is missing after \"{tokens[currentTokenIndex - 1]}\"");
+                Diagnostics.Errors.Add($"!syntax error: ) is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
                 throw new Exception();
             }
             Next(1);
@@ -350,7 +351,7 @@ public class Parser
                     evaluation = leftExpression.ToString() != rightExpression.ToString();
                     break;
                 default:
-                    Diagnostics.Errors.Add($"!syntax error: invalid boolean operator after {tokens[currentTokenIndex - 1]}");
+                    Diagnostics.Errors.Add($"!syntax error: invalid conditional operator after {tokens[currentTokenIndex - 1]} at index: {currentTokenIndex-1}");
                     throw new Exception();
             }
             return evaluation;
@@ -381,7 +382,7 @@ public class Parser
     {
         if (currentToken.Kind != TokenKind.LeftParenthesis)
         {
-            Diagnostics.Errors.Add($"!syntax error: ( expected after {tokens[currentTokenIndex - 1]}");
+            Diagnostics.Errors.Add($"!syntax error: ( expected after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
             throw new Exception();
         }
 
@@ -395,7 +396,7 @@ public class Parser
         }
         else
         {
-            Diagnostics.Errors.Add($"!syntax error: ) expected after {tokens[currentTokenIndex - 1]}");
+            Diagnostics.Errors.Add($"!syntax error: ) expected after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
             throw new Exception();
         }
     }
@@ -414,7 +415,7 @@ public class Parser
         else if (tokens.Count() == 1)
         {
             variables.Clear();
-            Diagnostics.Errors.Add($"!syntax error invalid expression \"{currentToken.Value}\"");
+            Diagnostics.Errors.Add($"!syntax error invalid expression \"{currentToken.Value}\" at index: {currentTokenIndex - 1}");
             throw new Exception();
 
         }
@@ -424,7 +425,7 @@ public class Parser
             if (currentToken.Kind != TokenKind.Semicolon)
             {
                 variables.Clear();
-                Diagnostics.Errors.Add($"!syntax error: operator is missing after \"{tokens[currentTokenIndex - 1]}\"");
+                Diagnostics.Errors.Add($"!syntax error: operator is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
                 throw new Exception();
             }
         }
@@ -438,7 +439,7 @@ public class Parser
         Next(1);
         if (currentToken.Kind != TokenKind.Identifier)
         {
-            Diagnostics.Errors.Add($"!syntax error: variable not defined after: \"{tokens[currentTokenIndex - 1]}\" ");
+            Diagnostics.Errors.Add($"!syntax error: variable not defined after: \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
             throw new Exception();
         }
         int Tokenindex = currentTokenIndex;
@@ -446,7 +447,7 @@ public class Parser
         Next(1);
         if (currentToken.Kind != TokenKind.Equals)
         {
-            Diagnostics.Errors.Add($"!syntax error: = is missing after \"{tokens[currentTokenIndex - 1].Name}\"");
+            Diagnostics.Errors.Add($"!syntax error: = is missing after \"{tokens[currentTokenIndex - 1].Name}\" at index: {currentTokenIndex - 1}");
             throw new Exception();
         }
 
@@ -473,22 +474,8 @@ public class Parser
 
         if (currentToken.Kind != TokenKind.inKeyWord)
         {
-            Diagnostics.Errors.Add($"!syntax error: \"in\" is missing after Token:\"{tokens[currentTokenIndex - 1]}\"");
+            Diagnostics.Errors.Add($"!syntax error: \"in\" is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
             throw new Exception();
         }
-    }
-    private bool IsAValidOperator(Token _currentToken)
-    {
-        List<TokenKind> operators = new List<TokenKind>(){
-            TokenKind.EqualsTo,     TokenKind.LessOrEquals,     TokenKind.And,
-            TokenKind.LessThan,     TokenKind.GreatherOrEquals, TokenKind.Or,
-            TokenKind.GreatherThan, TokenKind.NotEquals,
-        };
-        foreach (var _operator in operators)
-        {
-            if (_currentToken.Kind == _operator)
-                return true;
-        }
-        return false;
     }
 }
