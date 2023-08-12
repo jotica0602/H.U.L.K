@@ -13,7 +13,7 @@ public class Token
         Value = value;
 
     }
-    // Show TokenKind and Value
+    // Show TokenKind Value Properties
     public override string ToString()
     {
         if (Name == null) return $"{Kind}: {Value}";

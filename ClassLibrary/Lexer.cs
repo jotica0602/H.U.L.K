@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Xml.Schema;
 
-
 // A Lexer walks through the code and splits it into Tokens until it found any meaning
 // So, Lexer:
 // Recieves <code> ------- return Tokens
@@ -32,12 +31,14 @@ public class Lexer
                 parser.Parse();
 
                 parser.variables.Clear();
+                break;
             }
             catch (Exception)
             {
                 Console.WriteLine(Diagnostics.Errors[0]);
                 Diagnostics.Errors.Clear();
-                continue;
+                // continue;
+                break;
             }
         }
     }
@@ -375,6 +376,7 @@ public class Lexer
                 return true;
         return false;
     }
+    
 
     #endregion
 }

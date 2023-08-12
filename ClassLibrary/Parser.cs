@@ -1,7 +1,6 @@
 // After we made our list of Tokens, we need to find the sense of the expression, if it exists.
 public class Parser
 {
-
     #region Parser Object
     // This is the List
     private List<Token> tokens;
@@ -11,7 +10,8 @@ public class Parser
     private Token currentToken;
     // VarList to keep record of created Variables
     public List<Token> variables = new List<Token>();
-    //  Errors
+    // if-else tuples
+    public static List<(int, int)> ifElseMatches = new List<(int, int)>();
 
     // Previous Token
     public Parser(List<Token> tokens)
@@ -95,29 +95,57 @@ public class Parser
 
         else if (currentToken.Kind == TokenKind.ifKeyWord)
         {
-            Next(1);
-            bool evaluation = EvaluateIfExpression();
-            if (evaluation == true)
+            int elseIndex = 0;
+            for (int i = tokens.Count() - 1; i > 0; i--)
             {
-                Console.WriteLine(currentTokenIndex);
-                object ifInstruction = ParseExpression();
-                Next(tokens.Count()-1-currentTokenIndex);
-                return ifInstruction;
+                if (tokens[i].Kind == TokenKind.elseKeyWord)
+                {
+                    elseIndex = i;
+                    break;
+                }
+            }
+            int ifIndex = currentTokenIndex;
+
+            bool balanced = IfMatcher(ifIndex) & ElseMatcher(elseIndex);
+
+            if (balanced == true)
+            {
+                Next(1);
+                bool evaluation = EvaluateIfExpression();
+                if (evaluation == true)
+                {
+                    object ifInstruction = ParseExpression();
+                    currentTokenIndex = tokens.Count() - 2;
+                    Next(1);
+                    return ifInstruction;
+                }
+                else
+                {
+                    foreach (var match in ifElseMatches)
+                    {
+                        if (ifIndex == match.Item1)
+                        {
+                            currentTokenIndex = match.Item2;
+                        }
+                    }
+                    Next(1);
+                    object elseInstruction = ParseExpression();
+                    currentTokenIndex = tokens.Count() - 2;
+                    Next(1);
+                    return elseInstruction;
+                }
             }
             else
             {
-                while(currentToken.Kind!=TokenKind.elseKeyWord && currentToken.Kind!=TokenKind.Semicolon){
-                    Next(1);
-                }
-                if(currentToken.Kind == TokenKind.Semicolon){
-                    Diagnostics.Errors.Add("!syntax error: you must especify an else instruction");
-                    throw new Exception();
-                }
-                Next(1);
-                object elseInstruction = ParseExpression();
-                Next((tokens.Count()-1)-currentTokenIndex);
-                return elseInstruction; 
+                Diagnostics.Errors.Add("!syntax error: if-else instructions are not balanced");
+                throw new Exception();
             }
+        }
+
+        else if (currentToken.Kind == TokenKind.elseKeyWord)
+        {
+            Diagnostics.Errors.Add("!syntax error: if-else instructions are not balanced");
+            throw new Exception();
         }
 
         // in keyword means that we evaluating an expression
@@ -169,7 +197,7 @@ public class Parser
             throw new Exception();
         }
     }
-
+    
     private object _ParseTerm()
     {
         object term = ParseFactor();
@@ -351,7 +379,7 @@ public class Parser
                     evaluation = leftExpression.ToString() != rightExpression.ToString();
                     break;
                 default:
-                    Diagnostics.Errors.Add($"!syntax error: invalid conditional operator after {tokens[currentTokenIndex - 1]} at index: {currentTokenIndex-1}");
+                    Diagnostics.Errors.Add($"!syntax error: invalid conditional expression after {tokens[currentTokenIndex - 1]} at index: {currentTokenIndex - 1}");
                     throw new Exception();
             }
             return evaluation;
@@ -401,6 +429,41 @@ public class Parser
         }
     }
 
+    bool IfMatcher(int ifIndex)
+    {
+        for (int i = ifIndex + 1; i < tokens.Count(); i++)
+        {
+            if (tokens[i].Kind == TokenKind.ifKeyWord)
+            {
+                IfMatcher(i);
+                i = ifElseMatches.Last().Item2 + 1;
+            }
+            if (tokens[i].Kind == TokenKind.elseKeyWord)
+            {
+                ifElseMatches.Add((ifIndex, i));
+                return true;
+            }
+        }
+        return false;
+    }
+    bool ElseMatcher(int elseIndex)
+    {
+        for (int i = elseIndex - 1; i >= 0; i--)
+        {
+            if (tokens[i].Kind == TokenKind.elseKeyWord)
+            {
+                ElseMatcher(i);
+                i = ifElseMatches.Last().Item1 - 1;
+            }
+            if (tokens[i].Kind == TokenKind.ifKeyWord)
+            {
+                ifElseMatches.Add((i, elseIndex));
+                return true;
+            }
+        }
+        return false;
+    }
+
     #endregion
 
     #region Parser Main Function
@@ -425,7 +488,7 @@ public class Parser
             if (currentToken.Kind != TokenKind.Semicolon)
             {
                 variables.Clear();
-                Diagnostics.Errors.Add($"!syntax error: operator is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
+                Diagnostics.Errors.Add($"!syntax error: operator or expression is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
                 throw new Exception();
             }
         }
