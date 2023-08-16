@@ -13,34 +13,15 @@ public class Lexer
     #region Test Section
     static void Main(string[] args)
     {
-        while (true)
-        {
-            try
-            {
-                Console.Write(">");
-                string sourceCode = Console.ReadLine()!;
+        // switch for manual or automatic tests:
 
-                var Lexer = new Lexer(sourceCode);
-                if (Lexer.sourceCode == string.Empty)
-                {
-                    Diagnostics.Errors.Add("Empty Entry");
-                    throw new Exception();
-                }
-                List<Token> tokens = Lexer.Tokenize();
-                Parser parser = new(tokens);
-                parser.Parse();
+        // manual try: >function fact(n)=>if(n>1) n*fact(n-1) else 1; 
+        //             >fact(5); 
+        //             should be print 120 :)
+        // try the number u want :)
 
-                parser.variables.Clear();
-                break;
-            }
-            catch (Exception)
-            {
-                Console.WriteLine(Diagnostics.Errors[0]);
-                Diagnostics.Errors.Clear();
-                // continue;
-                break;
-            }
-        }
+        Manual();
+        // Auto();
     }
 
     #endregion
@@ -154,7 +135,7 @@ public class Lexer
             str += sourceCode[currentPosition];
             currentPosition++;
         }
-        Next();
+        Next(1);
         return new Token(TokenKind.String, null!, str);
     }
 
@@ -164,92 +145,93 @@ public class Lexer
 
         if (_operator == '+')
         {
-            Next();
+            Next(1);
             return new Token(TokenKind.PlusOperator, _operator.ToString(), null!);
         }
 
         else if (_operator == '-')
         {
-            Next();
+            Next(1);
             return new Token(TokenKind.MinusOperator, _operator.ToString(), null!);
         }
         else if (_operator == '*')
         {
-            Next();
+            Next(1);
             return new Token(TokenKind.MultOperator, _operator.ToString(), null!);
         }
         else if (_operator == '/')
         {
-            Next();
+            Next(1);
             return new Token(TokenKind.DivideOperator, _operator.ToString(), null!);
         }
         else if (_operator == '^')
         {
-            Next();
+            Next(1);
             return new Token(TokenKind.Power, _operator.ToString(), null!);
         }
         else if (_operator == '%')
         {
-            Next();
+            Next(1);
             return new Token(TokenKind.Modulus, _operator.ToString(), null!);
         }
         else if (_operator == '@')
         {
-            Next();
+            Next(1);
             return new Token(TokenKind.Concat, _operator.ToString(), null!);
         }
         else if (_operator == '<' && LookAhead(1) == '=')
         {
-            Next();
-            Next();
+            Next(2);
             return new Token(TokenKind.LessOrEquals, "<=", null!);
         }
         else if (_operator == '<')
         {
-            Next();
+            Next(1);
             return new Token(TokenKind.LessThan, _operator.ToString(), null!);
         }
         else if (_operator == '>' && LookAhead(1) == '=')
         {
-            Next();
-            Next();
+            Next(2);
             return new Token(TokenKind.GreatherOrEquals, ">=", null!);
         }
         else if (_operator == '>')
         {
-            Next();
+            Next(1);
             return new Token(TokenKind.GreatherThan, _operator.ToString(), null!);
         }
         else if (_operator == '!' && LookAhead(1) == '=')
         {
-            Next();
-            Next();
+            Next(2);
             return new Token(TokenKind.NotEquals, "!=", null!);
         }
         else if (_operator == '!')
         {
-            Next();
+            Next(1);
             return new Token(TokenKind.Not, _operator.ToString(), null!);
         }
         else if (_operator == '=' && LookAhead(1) == '=')
         {
-            Next();
-            Next();
+            Next(2);
             return new Token(TokenKind.EqualsTo, "==", null!);
+        }
+        else if (_operator == '=' && LookAhead(1) == '>')
+        {
+            Next(2);
+            return new Token(TokenKind.Arrow, null!, null!);
         }
         else if (_operator == '=')
         {
-            Next();
+            Next(1);
             return new Token(TokenKind.Equals, null!, null!);
         }
         else if (_operator == '&')
         {
-            Next();
+            Next(1);
             return new Token(TokenKind.And, null!, null!);
         }
         else
         {
-            Next();
+            Next(1);
             return new Token(TokenKind.Or, _operator.ToString(), null!);
         }
     }
@@ -260,31 +242,31 @@ public class Lexer
         switch (punctuator)
         {
             case '(':
-                Next();
+                Next(1);
                 return new Token(TokenKind.LeftParenthesis, punctuator.ToString(), null!);
 
             case ')':
-                Next();
+                Next(1);
                 return new Token(TokenKind.RightParenthesis, punctuator.ToString(), null!);
 
             case ',':
-                Next();
+                Next(1);
                 return new Token(TokenKind.Comma, punctuator.ToString(), null!);
 
             case ';':
-                Next();
+                Next(1);
                 return new Token(TokenKind.Semicolon, punctuator.ToString(), null!);
 
             case ':':
-                Next();
+                Next(1);
                 return new Token(TokenKind.Colon, punctuator.ToString(), null!);
 
             case '"':
-                Next();
+                Next(1);
                 return new Token(TokenKind.Quote, punctuator.ToString(), null!);
 
             default:
-                Next();
+                Next(1);
                 return new Token(TokenKind.FullStop, punctuator.ToString(), null!);
         }
     }
@@ -314,9 +296,9 @@ public class Lexer
 
     #region Utility Functions 
 
-    private void Next()
+    private void Next(int positions)
     {
-        currentPosition++;
+        currentPosition += positions;
     }
     private char LookAhead(int positions)
     {
@@ -376,7 +358,87 @@ public class Lexer
                 return true;
         return false;
     }
-    
+
 
     #endregion
+
+    public static void Auto()
+    {
+        int i = 0;
+
+        while (true)
+        {
+            try
+            {
+
+                // Automatic tests
+                string[] strings = { "function fact(n) =>  if (n > 1) n*fact(n-1) else 1;", "fact(5);" };
+                var Lexer = new Lexer(strings[i]);
+
+                if (Lexer.sourceCode == string.Empty)
+                {
+                    Diagnostics.Errors.Add("Empty Entry");
+                    throw new Exception();
+                }
+
+                List<Token> tokens = Lexer.Tokenize();
+                List<Token> variables = new List<Token>();
+
+                // Console.WriteLine(String.Join("\n", tokens));
+
+                Parser parser = new Parser(tokens, variables);
+                parser.Parse();
+
+                parser.variables.Clear();
+                i++;
+                if (i >= strings.Length)
+                    break;
+            }
+            catch (Exception)
+            {
+                Console.WriteLine(Diagnostics.Errors[0]);
+                Diagnostics.Errors.Clear();
+                // continue;
+                break;
+            }
+        }
+    }
+
+    public static void Manual()
+    {
+        Console.Clear();
+        while (true)
+        {
+            try
+            {
+                Console.Write(">");
+                string sourceCode = Console.ReadLine()!;
+                var Lexer = new Lexer(sourceCode);
+
+
+                if (Lexer.sourceCode == string.Empty)
+                {
+                    Diagnostics.Errors.Add("Empty Entry");
+                    throw new Exception();
+                }
+
+                List<Token> tokens = Lexer.Tokenize();
+                List<Token> variables = new List<Token>();
+
+                // Console.WriteLine(String.Join("\n", tokens));
+
+                Parser parser = new Parser(tokens, variables);
+                parser.Parse();
+
+                parser.variables.Clear();
+
+            }
+            catch (Exception)
+            {
+                Console.WriteLine(Diagnostics.Errors[0]);
+                Diagnostics.Errors.Clear();
+                continue;
+            }
+        }
+    }
 }

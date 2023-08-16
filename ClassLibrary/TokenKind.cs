@@ -33,9 +33,10 @@ public enum TokenKind
     Concat,
     // Bool Operators
     And, Or, EqualsTo, LessOrEquals, LessThan, GreatherOrEquals, GreatherThan, NotEquals, Not,
-
     // Punctuators
     LeftParenthesis, RightParenthesis, Comma, Colon, Semicolon, FullStop, Quote,
+    // Function declaration
+    Arrow,
 
     EndOfFile,
     Unknown

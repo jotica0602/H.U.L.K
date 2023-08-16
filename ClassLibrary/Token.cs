@@ -16,9 +16,11 @@ public class Token
     // Show TokenKind Value Properties
     public override string ToString()
     {
-        if (Name == null) return $"{Kind}: {Value}";
-        else if (Value == null) return $"{Kind}: {Name}";
-        else return $"{Kind}: {Name} = {Value}";
+        if (Value != null & Name == null) return $"{Value}";
+        else if (Name != null & Value == null) return $"{Name}";
+        else if (Kind == TokenKind.String) return $"{Value}";
+        else if (Name == null & Value==null) return $"{Kind}";
+        else return $"{Name} = {Value}";
     }
 }
 
