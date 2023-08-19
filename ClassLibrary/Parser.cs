@@ -13,6 +13,7 @@ public class Parser
     // if-else tuples
     public static List<(int, int)> ifElseMatches = new List<(int, int)>();
 
+    // Constructor
     public Parser(List<Token> tokens, List<Token> variables)
     {
         this.tokens = tokens;
@@ -73,7 +74,7 @@ public class Parser
 
         #endregion
 
-        #region Variable Instruction
+        #region Variables and Function Instructions
 
         // if there is an identifier, we check if it is an existent variable or function and return its value
         else if (currentToken.Kind == TokenKind.Identifier)
@@ -109,6 +110,30 @@ public class Parser
                 throw new Exception();
             }
             else return factor;
+        }
+        #endregion
+
+        #region Variables and Functions Declarations
+
+        // in keyword means that we evaluating an expression
+        else if (currentToken.Kind == TokenKind.inKeyWord)
+        {
+            Next(1);
+            object factor = ParseExpression();
+            return factor;
+        }
+
+        // let keyword means that we are declaring a variable
+        else if (currentToken.Kind == TokenKind.letKeyWord)
+        {
+            CreateVar(variables);
+
+            // after creating vars, we stepped into in keyword
+            // and need to parse the next expression
+
+            object factor = ParseExpression();
+
+            return factor;
         }
         #endregion
 
@@ -170,30 +195,6 @@ public class Parser
         }
         #endregion
 
-        #region Variables and Functions declarations
-
-        // in keyword means that we evaluating an expression
-        else if (currentToken.Kind == TokenKind.inKeyWord)
-        {
-            Next(1);
-            object factor = ParseExpression();
-            return factor;
-        }
-
-        // let keyword means that we are declaring a variable
-        else if (currentToken.Kind == TokenKind.letKeyWord)
-        {
-            CreateVar(variables);
-
-            // after creating vars, we stepped into in keyword
-            // and need to parse the next expression
-
-            object factor = ParseExpression();
-
-            return factor;
-        }
-
-        #endregion
 
         // if we find a left parenthesis we will parse the next expression until we find a right parenthesis, if we don't find any
         // it will be a syntax.
@@ -525,9 +526,9 @@ public class Parser
         else if (tokens.Count() > 1)
         {
             object result = ParseExpression();
-            if(!(result is null))
+            if (!(result is null))
                 Console.WriteLine(result);
-                
+
             if (currentToken.Kind != TokenKind.Semicolon && currentToken.Kind != TokenKind.EndOfFile)
             {
                 variables.Clear();
@@ -539,7 +540,7 @@ public class Parser
 
     #endregion
 
-
+    #region Variables and Functions Creation
     // Create Variable Utility Function
     private void CreateVar(List<Token> variables)
     {
@@ -608,7 +609,7 @@ public class Parser
 
         Next(1);
 
-        List<(string,object)> args = new List<(string,object)>();
+        List<(string, object)> args = new List<(string, object)>();
 
         while (currentToken.Kind != TokenKind.RightParenthesis)
         {
@@ -617,15 +618,15 @@ public class Parser
                 Diagnostics.Errors.Add($"!syntax error: {currentToken} is not a valid argument");
                 throw new Exception();
             }
-            args.Add((currentToken.Name,currentToken.Value));
+            args.Add((currentToken.Name, currentToken.Value));
             Next(1);
-            
+
 
             if (currentToken.Kind == TokenKind.Comma)
                 Next(1);
         }
 
-        function.Args=args;
+        function.Args = args;
 
         Next(1);
 
@@ -647,6 +648,9 @@ public class Parser
         functions.Add(function);
     }
 
+    #endregion
+
+    #region Function Evaluation 
     private object EvaluateFunction(Funct function)
     {
         Console.WriteLine(function);
@@ -663,27 +667,30 @@ public class Parser
         int index = 0;
         while (currentToken.Kind != TokenKind.RightParenthesis)
         {
-            if(index==function.Args.Count)
+            if (index == function.Args.Count)
                 break;
-            
+
             object seconditem = ParseExpression();
-            Console.WriteLine("argument = "+seconditem);
-            function.Args[index] = (function.Args[index].Item1,seconditem);
+            Console.WriteLine("argument = " + seconditem);
+            function.Args[index] = (function.Args[index].Item1, seconditem);
 
             index++;
 
             if (currentToken.Kind == TokenKind.Comma)
                 Next(1);
-            
+
         }
 
-        for(int i =0; i < function.Args.Count;i++){
-            foreach(var token in function.Instructions){
+        for (int i = 0; i < function.Args.Count; i++)
+        {
+            foreach (var token in function.Instructions)
+            {
                 if (token.Name == function.Args[i].Item1)
-                    token.Value=function.Args[i].Item2;
+                    token.Value = function.Args[i].Item2;
             }
         }
 
         return function.Execute();
     }
+    #endregion
 }
