@@ -1,5 +1,3 @@
-
-// Token Kinds
 public enum TokenKind
 {
     // <summary>
@@ -9,8 +7,6 @@ public enum TokenKind
 
     // Identifiers
     Identifier,
-    // Variable
-    Variable,
     // KeyWords
     letKeyWord, inKeyWord, functionKeyWord, ifKeyWord, elseKeyWord,
 

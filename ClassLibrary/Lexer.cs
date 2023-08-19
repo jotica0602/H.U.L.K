@@ -13,15 +13,8 @@ public class Lexer
     #region Test Section
     static void Main(string[] args)
     {
-        // switch for manual or automatic tests:
-
-        // manual try: >function fact(n)=>if(n>1) n*fact(n-1) else 1; 
-        //             >fact(5); 
-        //             should be print 120 :)
-        // try the number u want :)
-
-        Manual();
         // Auto();
+        Manual();
     }
 
     #endregion
@@ -43,13 +36,11 @@ public class Lexer
     // So I created a function named Tokenize, wich returns a List of Tokens containing all the Tokens
     public List<Token> Tokenize()
     {
-
         // Initialize List
         List<Token> tokens = new();
 
         while (currentPosition < sourceCode.Length)
         {
-
             // The character we are looking at is the current position of the sourceCode
             char currentChar = sourceCode[currentPosition];
 
@@ -67,13 +58,13 @@ public class Lexer
                 tokens.Add(StringKind());
             // Digits
             else if (char.IsDigit(currentChar))
-                tokens.Add(NumberKind());
+                tokens.Add(Number());
             // Operators 
             else if (IsOperator(currentChar))
-                tokens.Add(OperatorKind());
+                tokens.Add(Operator());
             // Punctuators
             else if (IsPunctuator(currentChar))
-                tokens.Add(PuncutatorKind());
+                tokens.Add(Punctuator());
             // unknown tokens
             else
             {
@@ -94,17 +85,19 @@ public class Lexer
 
     #region TokenKind Adder Functions
 
-    private Token NumberKind()
+    private Token Number()
     {
 
         string number = "";
+
         while ((currentPosition < sourceCode.Length) && (char.IsDigit(sourceCode[currentPosition]) || sourceCode[currentPosition] == '.'))
         {
             number += sourceCode[currentPosition];
             currentPosition++;
         }
+
         number = number.Replace('.', ',');
-        // Token (Token Kind, Number Value)
+
         return new Token(TokenKind.Number, null!, double.Parse(number));
     }
 
@@ -118,10 +111,12 @@ public class Lexer
             idkind += sourceCode[currentPosition];
             currentPosition++;
         }
+
         if (IsKeyWord(idkind))
         {
             return KeyWord(idkind);
         }
+
         else
             return new Token(TokenKind.Identifier, idkind, null!);
     }
@@ -130,143 +125,161 @@ public class Lexer
     {
         currentPosition++;
         string str = "";
+
         while (currentPosition < sourceCode.Length && sourceCode[currentPosition] != '"')
         {
             str += sourceCode[currentPosition];
             currentPosition++;
         }
-        Next(1);
+
+        Eat(1);
         return new Token(TokenKind.String, null!, str);
     }
 
-    private Token OperatorKind()
+    private Token Operator()
     {
         char _operator = sourceCode[currentPosition];
 
         if (_operator == '+')
         {
-            Next(1);
+            Eat(1);
             return new Token(TokenKind.PlusOperator, _operator.ToString(), null!);
         }
 
         else if (_operator == '-')
         {
-            Next(1);
+            Eat(1);
             return new Token(TokenKind.MinusOperator, _operator.ToString(), null!);
         }
+
         else if (_operator == '*')
         {
-            Next(1);
+            Eat(1);
             return new Token(TokenKind.MultOperator, _operator.ToString(), null!);
         }
+
         else if (_operator == '/')
         {
-            Next(1);
+            Eat(1);
             return new Token(TokenKind.DivideOperator, _operator.ToString(), null!);
         }
+
         else if (_operator == '^')
         {
-            Next(1);
+            Eat(1);
             return new Token(TokenKind.Power, _operator.ToString(), null!);
         }
+
         else if (_operator == '%')
         {
-            Next(1);
+            Eat(1);
             return new Token(TokenKind.Modulus, _operator.ToString(), null!);
         }
+
         else if (_operator == '@')
         {
-            Next(1);
+            Eat(1);
             return new Token(TokenKind.Concat, _operator.ToString(), null!);
         }
+
         else if (_operator == '<' && LookAhead(1) == '=')
         {
-            Next(2);
+            Eat(2);
             return new Token(TokenKind.LessOrEquals, "<=", null!);
         }
+        
         else if (_operator == '<')
         {
-            Next(1);
+            Eat(1);
             return new Token(TokenKind.LessThan, _operator.ToString(), null!);
         }
+
         else if (_operator == '>' && LookAhead(1) == '=')
         {
-            Next(2);
+            Eat(2);
             return new Token(TokenKind.GreatherOrEquals, ">=", null!);
         }
+
         else if (_operator == '>')
         {
-            Next(1);
+            Eat(1);
             return new Token(TokenKind.GreatherThan, _operator.ToString(), null!);
         }
+
         else if (_operator == '!' && LookAhead(1) == '=')
         {
-            Next(2);
+            Eat(2);
             return new Token(TokenKind.NotEquals, "!=", null!);
         }
+
         else if (_operator == '!')
         {
-            Next(1);
+            Eat(1);
             return new Token(TokenKind.Not, _operator.ToString(), null!);
         }
+
         else if (_operator == '=' && LookAhead(1) == '=')
         {
-            Next(2);
+            Eat(2);
             return new Token(TokenKind.EqualsTo, "==", null!);
         }
+
         else if (_operator == '=' && LookAhead(1) == '>')
         {
-            Next(2);
+            Eat(2);
             return new Token(TokenKind.Arrow, null!, null!);
         }
+
         else if (_operator == '=')
         {
-            Next(1);
+            Eat(1);
             return new Token(TokenKind.Equals, null!, null!);
         }
+
         else if (_operator == '&')
         {
-            Next(1);
+            Eat(1);
             return new Token(TokenKind.And, null!, null!);
         }
+
         else
         {
-            Next(1);
+            Eat(1);
             return new Token(TokenKind.Or, _operator.ToString(), null!);
         }
     }
 
-    private Token PuncutatorKind()
+    private Token Punctuator()
     {
         char punctuator = sourceCode[currentPosition];
         switch (punctuator)
         {
             case '(':
-                Next(1);
+                Eat(1);
                 return new Token(TokenKind.LeftParenthesis, punctuator.ToString(), null!);
 
             case ')':
-                Next(1);
+                Eat(1);
                 return new Token(TokenKind.RightParenthesis, punctuator.ToString(), null!);
 
             case ',':
-                Next(1);
+                Eat(1);
                 return new Token(TokenKind.Comma, punctuator.ToString(), null!);
 
             case ';':
-                Next(1);
+                Eat(1);
                 return new Token(TokenKind.Semicolon, punctuator.ToString(), null!);
 
             case ':':
-                Next(1);
+                Eat(1);
                 return new Token(TokenKind.Colon, punctuator.ToString(), null!);
 
             case '"':
-                Next(1);
+                Eat(1);
                 return new Token(TokenKind.Quote, punctuator.ToString(), null!);
 
             default:
-                Next(1);
+                Eat(1);
                 return new Token(TokenKind.FullStop, punctuator.ToString(), null!);
         }
     }
@@ -277,18 +290,25 @@ public class Lexer
         {
             case "let":
                 return new Token(TokenKind.letKeyWord, null!, null!);
+
             case "in":
                 return new Token(TokenKind.inKeyWord, null!, null!);
+
             case "function":
                 return new Token(TokenKind.functionKeyWord, null!, null!);
+
             case "true":
                 return new Token(TokenKind.trueKeyWord, null!, true);
+
             case "false":
                 return new Token(TokenKind.falseKeyWord, null!, false);
+
             case "if":
                 return new Token(TokenKind.ifKeyWord, null!, null!);
+
             default:
                 return new Token(TokenKind.elseKeyWord, null!, null!);
+
         }
     }
 
@@ -296,7 +316,7 @@ public class Lexer
 
     #region Utility Functions 
 
-    private void Next(int positions)
+    private void Eat(int positions)
     {
         currentPosition += positions;
     }
@@ -338,8 +358,8 @@ public class Lexer
             '[', ']','.','"',':'
         };
 
-        foreach (var puncutator in Punctuators)
-            if (currentChar == puncutator)
+        foreach (var punctuator in Punctuators)
+            if (currentChar == punctuator)
                 return true;
         return false;
     }
@@ -372,7 +392,7 @@ public class Lexer
             {
 
                 // Automatic tests
-                string[] strings = { "function fact(n) =>  if (n > 1) n*fact(n-1) else 1;", "fact(5);" };
+                string[] strings = { "a+b;" };
                 var Lexer = new Lexer(strings[i]);
 
                 if (Lexer.sourceCode == string.Empty)
@@ -386,7 +406,7 @@ public class Lexer
 
                 // Console.WriteLine(String.Join("\n", tokens));
 
-                Parser parser = new Parser(tokens, variables);
+                Parser parser = new Parser(tokens, new List<Funct>());
                 parser.Parse();
 
                 parser.variables.Clear();
@@ -425,9 +445,7 @@ public class Lexer
                 List<Token> tokens = Lexer.Tokenize();
                 List<Token> variables = new List<Token>();
 
-                // Console.WriteLine(String.Join("\n", tokens));
-
-                Parser parser = new Parser(tokens, variables);
+                Parser parser = new Parser(tokens, new List<Funct>());
                 parser.Parse();
 
                 parser.variables.Clear();

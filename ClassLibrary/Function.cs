@@ -1,35 +1,43 @@
 public class Funct
 {
     public string Name { get; set; }
-    public List<(string,object)> Args { get; set; }
-    public List<Token> Instructions { get; set; }
 
-    public static List<Funct> functions = new List<Funct>();
+    public List<(string, object)> Args { get; set; }
 
-    public Funct(string name, List<(string,object)>args, List<Token> instructions)
+    public List<Token> Body { get; set; }
+    
+    public Funct(string name, List<(string, object)> args, List<Token> body)
     {
         Name = name;
         Args = args;
-        Instructions = instructions;
+        Body = body;
+    }
+
+    public object Clone()
+    {
+        Funct clone = new Funct(Name, new List<(string, object)>(), new List<Token>());
+
+        foreach (var arg in Args)
+        {
+            clone.Args.Add((arg.Item1, arg.Item2));
+        }
+
+        foreach (var token in Body)
+        {
+            clone.Body.Add(token.Clone());
+        }
+
+        return clone;
     }
 
     public object Execute()
     {
-        List<Token> variables = new List<Token>();
-        foreach (var token in Instructions)
-        {
-            if (token.Kind == TokenKind.Identifier && token.Value != null && !variables.Contains(token))
-            {
-                variables.Add(token);
-            }
-        }
-        Parser parser = new Parser(Instructions, variables);
+        Parser parser = new Parser(Body, new List<Funct>());
         return parser.ParseExpression();
-
     }
 
     public override string ToString()
     {
-        return $"Name: {Name} | Arguments:{String.Join(" ", Args)} | Instructions: {String.Join(" ", Instructions)}";
+        return $"Name: {Name} | Arguments:{String.Join(" ", Args)} | Instructions: {String.Join(" ", Body)}";
     }
 }

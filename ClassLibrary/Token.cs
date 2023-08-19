@@ -1,6 +1,3 @@
-
-#region Token Objects
-// Token Object
 public class Token
 {
     public TokenKind Kind { get; set; }
@@ -13,6 +10,10 @@ public class Token
         Value = value;
 
     }
+    public Token Clone()
+    {
+        return new Token(Kind, Name, Value);
+    }
     // Show TokenKind Value Properties
     public override string ToString()
     {
@@ -23,5 +24,3 @@ public class Token
         else return $"{Name} = {Value}";
     }
 }
-
-#endregion
