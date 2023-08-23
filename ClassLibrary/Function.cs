@@ -1,21 +1,18 @@
 public class Funct
 {
-    public string Name { get; set; }
-
     public List<(string, object)> Args { get; set; }
-
+    
     public List<Token> Body { get; set; }
     
-    public Funct(string name, List<(string, object)> args, List<Token> body)
+    public Funct(List<(string, object)> args, List<Token> body)
     {
-        Name = name;
         Args = args;
         Body = body;
     }
 
     public object Clone()
     {
-        Funct clone = new Funct(Name, new List<(string, object)>(), new List<Token>());
+        Funct clone = new Funct(new List<(string, object)>(), new List<Token>());
 
         foreach (var arg in Args)
         {
@@ -38,6 +35,6 @@ public class Funct
 
     public override string ToString()
     {
-        return $"Name: {Name} | Arguments:{String.Join(" ", Args)} | Instructions: {String.Join(" ", Body)}";
+        return $"Arguments:{String.Join(" ", Args)} | Instructions: {String.Join(" ", Body)}";
     }
 }

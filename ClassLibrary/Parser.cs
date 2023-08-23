@@ -1,19 +1,23 @@
 // After we made our list of Tokens, we need to find the sense of the expression, if it exists.
+using System.Reflection;
+
 public class Parser
 {
     #region Parser Object
     // Tokens List to Parse
     private List<Token> tokens;
+    // VarList to keep record of created Variables
+    public Dictionary<string, object> variables = new Dictionary<string,object>();
     // Call Stack
     private List<Funct> stack;
+
 
     // Current Index
     private int currentTokenIndex;
     // Current Token
     private Token currentToken;
 
-    // VarList to keep record of created Variables
-    public Dictionary<string, object> variables = new Dictionary<string, object>();
+
     // if-else tuples
     public static List<(int, int)> ifElseMatches = new List<(int, int)>();
 
@@ -25,7 +29,6 @@ public class Parser
         currentTokenIndex = 0;
         currentToken = tokens[currentTokenIndex];
     }
-
     // Now we can move through our Tokens List
     public void Eat(int positions)
     {
@@ -218,6 +221,8 @@ public class Parser
         object term = ParseFactor();
         if (term is string)
             return term;
+        else if (term is null)
+            return term!;
         else if (term is bool)
             return term;
         else
@@ -252,6 +257,8 @@ public class Parser
         object term = _ParseTerm();
         if (term is string)
             return term;
+        else if (term is null)
+            return term!;
         else if (term is bool)
             return term;
         else
@@ -287,6 +294,8 @@ public class Parser
         // if the expression is a string we  will 
         if (expressionResult is string)
             return expressionResult;
+        else if (expressionResult is null)
+            return expressionResult!;
         else if (expressionResult is bool)
             return expressionResult;
         else
@@ -526,7 +535,7 @@ public class Parser
         else if (tokens.Count() == 1)
         {
             variables.Clear();
-            Diagnostics.Errors.Add($"!syntax error invalid expression \"{currentToken.Value}\" at index: {currentTokenIndex - 1}");
+            Diagnostics.Errors.Add($"!syntax error: invalid expression.");
             throw new Exception();
 
         }
@@ -575,7 +584,13 @@ public class Parser
         }
         Token variable = new Token(TokenKind.Identifier, tokens[Tokenindex].Name, ParseExpression());
 
-        variables.Add(variable.Name, variable.Value);
+        if (!variables.ContainsKey(variable.Name))
+            variables.Add(variable.Name, variable.Value);
+        else
+        {
+            variables.Remove(variable.Name);
+            variables.Add(variable.Name, variable.Value);
+        }
 
         if (currentToken.Kind == TokenKind.Comma)
             CreateVar(variables);
@@ -589,7 +604,7 @@ public class Parser
 
     public void CreateFunction(Dictionary<string, Funct> functions)
     {
-        string name = "";
+        string functionName = "";
         List<(string, object)> args = new List<(string, object)>();
         List<Token> body = new List<Token>();
 
@@ -600,7 +615,7 @@ public class Parser
             throw new Exception();
         }
 
-        name = currentToken.Name;
+        functionName = currentToken.Name;
 
         Eat(1);
 
@@ -644,19 +659,19 @@ public class Parser
         }
         body.Add(new Token(TokenKind.Semicolon, ";", null!));
 
-        Funct function = new Funct(name, args, body);
+        Funct function = new Funct(args, body);
 
-        if (!functions.ContainsKey(function.Name))
+        if (!functions.ContainsKey(functionName))
         {
-            functions.Add(name, function);
-            Console.WriteLine($"!function: \"{name}\" created.");
+            functions.Add(functionName, function);
+            Console.WriteLine($"!function: \"{functionName}\" created.");
         }
         else
         {
-            functions.Remove(function.Name);
-            Console.WriteLine($"!old function: \"{name}\" removed.");
-            functions.Add(name, function);
-            Console.WriteLine($"!new function: \"{name}\" created.");
+            functions.Remove(functionName);
+            Console.WriteLine($"!old function: \"{functionName}\" removed.");
+            functions.Add(functionName, function);
+            Console.WriteLine($"!new function: \"{functionName}\" created.");
         }
     }
 

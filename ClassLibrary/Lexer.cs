@@ -187,7 +187,7 @@ public class Lexer
             Eat(2);
             return new Token(TokenKind.LessOrEquals, "<=", null!);
         }
-        
+
         else if (_operator == '<')
         {
             Eat(1);
@@ -346,7 +346,6 @@ public class Lexer
         foreach (var _operator in Operators)
             if (currentChar == _operator)
                 return true;
-
         return false;
     }
 
@@ -379,7 +378,6 @@ public class Lexer
         return false;
     }
 
-
     #endregion
 
     public static void Auto()
@@ -392,7 +390,7 @@ public class Lexer
             {
 
                 // Automatic tests
-                string[] strings = { "a+b;" };
+                string[] strings = { "function print(x) => x;","function f(x) => let x = x+1 in print(x);","f(3);" };
                 var Lexer = new Lexer(strings[i]);
 
                 if (Lexer.sourceCode == string.Empty)
@@ -402,7 +400,6 @@ public class Lexer
                 }
 
                 List<Token> tokens = Lexer.Tokenize();
-                List<Token> variables = new List<Token>();
 
                 // Console.WriteLine(String.Join("\n", tokens));
 
@@ -443,7 +440,6 @@ public class Lexer
                 }
 
                 List<Token> tokens = Lexer.Tokenize();
-                List<Token> variables = new List<Token>();
 
                 Parser parser = new Parser(tokens, new List<Funct>());
                 parser.Parse();
