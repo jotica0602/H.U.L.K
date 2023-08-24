@@ -20,7 +20,7 @@ public enum TokenKind
     // <summary>
     // Operators:
     // There are 3 kind of operators in H.U.L.K:
-    // Arithmetic Operators a String Operator and Bool Operators 
+    // Arithmetic Operators, String Operators and Bool Operators 
     // </summary>
 
     // Arithmetic Operators

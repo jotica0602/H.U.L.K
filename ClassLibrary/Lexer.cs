@@ -13,8 +13,8 @@ public class Lexer
     #region Test Section
     static void Main(string[] args)
     {
-        Auto();
-        // Manual();
+        // Auto();
+        Manual();
     }
 
     #endregion
@@ -89,10 +89,18 @@ public class Lexer
     {
 
         string number = "";
-
+        
         while ((currentPosition < sourceCode.Length) && (char.IsDigit(sourceCode[currentPosition]) || sourceCode[currentPosition] == '.'))
         {
+            
             number += sourceCode[currentPosition];
+
+            if(IsLetter(LookAhead(1)))
+            {
+                Diagnostics.Errors.Add($"!lexical error: {number+LookAhead(1)} is not a valid token.");
+                throw new Exception();
+            }
+
             currentPosition++;
         }
 
@@ -390,7 +398,7 @@ public class Lexer
             {
 
                 // Automatic tests
-                string[] strings = { "function fib(n) => if(n>=1) fib(n-1) + fib(n-2) else 1;","fib(5);" };
+                string[] strings = { "function fib(n) => if(n>=1) fib(n-1) + fib(n-2) else 1;", "fib(5);" };
                 var Lexer = new Lexer(strings[i]);
 
                 if (Lexer.sourceCode == string.Empty)
@@ -405,7 +413,7 @@ public class Lexer
                 parser.Parse();
 
                 parser.ClearVariables();
-                
+
                 i++;
                 if (i >= strings.Length)
                     break;
