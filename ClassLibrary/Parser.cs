@@ -1,13 +1,12 @@
 // After we made our list of Tokens, we need to find the sense of the expression, if it exists.
 using System.Reflection;
-
 public class Parser
 {
     #region Parser Object
     // Tokens List to Parse
     private List<Token> tokens;
     // VarList to keep record of created Variables
-    public Dictionary<string, object> variables = new Dictionary<string,object>();
+    public Dictionary<string, object> variables = new Dictionary<string, object>();
     // Call Stack
     private List<Funct> stack;
 
@@ -110,7 +109,7 @@ public class Parser
                 }
                 else
                 {
-                    Diagnostics.Errors.Add($"!semantic error: function or variable \"{tokens[currentTokenIndex].Name}\" does not exists ");
+                    Diagnostics.Errors.Add($"!semantic error: function or variable \"{tokens[currentTokenIndex].Name}\" does not exists.");
                     throw new Exception();
                 }
             }
@@ -173,14 +172,14 @@ public class Parser
             }
             else
             {
-                Diagnostics.Errors.Add("!syntax error: if-else instructions are not balanced");
+                Diagnostics.Errors.Add("!syntax error: if-else instructions are not balanced.");
                 throw new Exception();
             }
         }
 
         else if (currentToken.Kind == TokenKind.elseKeyWord)
         {
-            Diagnostics.Errors.Add("!syntax error: if-else instructions are not balanced");
+            Diagnostics.Errors.Add("!syntax error: if-else instructions are not balanced.");
             throw new Exception();
         }
 
@@ -194,7 +193,7 @@ public class Parser
             object factor = ParseExpression();
             if (currentToken.Kind != TokenKind.RightParenthesis)
             {
-                Diagnostics.Errors.Add($"!syntax error: ) is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
+                Diagnostics.Errors.Add($"!syntax error: ) is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
                 throw new Exception();
             }
             Eat(1);
@@ -211,7 +210,7 @@ public class Parser
         // for missing expressions to operate with
         else
         {
-            Diagnostics.Errors.Add($"!syntax error: factor or expression is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
+            Diagnostics.Errors.Add($"!syntax error: factor or expression is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
             throw new Exception();
         }
     }
@@ -244,7 +243,7 @@ public class Parser
                 }
                 else
                 {
-                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between string and number index: {currentTokenIndex - 1}");
+                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between string and number index: {currentTokenIndex - 1}.");
                     throw new InvalidOperationException();
                 }
             }
@@ -280,7 +279,7 @@ public class Parser
                     _term %= (double)nextToken;
                 else
                 {
-                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between string and number index: {currentTokenIndex - 1}");
+                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between string and number index: {currentTokenIndex - 1}.");
                     throw new Exception();
                 }
             }
@@ -312,7 +311,7 @@ public class Parser
                     _expressionResult -= (double)nextToken;
                 else
                 {
-                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between number and string index: {currentTokenIndex - 1}");
+                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between number and string index: {currentTokenIndex - 1}.");
                     throw new Exception();
                 }
             }
@@ -357,7 +356,7 @@ public class Parser
             object expression = EvaluateBooleanExpression();
             if (currentToken.Kind != TokenKind.RightParenthesis)
             {
-                Diagnostics.Errors.Add($"!syntax error: ) is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
+                Diagnostics.Errors.Add($"!syntax error: \"Right Parenthesis\" is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
                 throw new Exception();
             }
             Eat(1);
@@ -408,7 +407,7 @@ public class Parser
                     evaluation = leftExpression.ToString() != rightExpression.ToString();
                     break;
                 default:
-                    Diagnostics.Errors.Add($"!syntax error: invalid conditional expression after {tokens[currentTokenIndex - 1]} at index: {currentTokenIndex - 1}");
+                    Diagnostics.Errors.Add($"!syntax error: invalid conditional expression after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
                     throw new Exception();
             }
             return evaluation;
@@ -439,7 +438,7 @@ public class Parser
     {
         if (currentToken.Kind != TokenKind.LeftParenthesis)
         {
-            Diagnostics.Errors.Add($"!syntax error: ( expected after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
+            Diagnostics.Errors.Add($"!syntax error: \"Left Parenthesis\" expected after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
             throw new Exception();
         }
 
@@ -453,7 +452,7 @@ public class Parser
         }
         else
         {
-            Diagnostics.Errors.Add($"!syntax error: ) expected after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
+            Diagnostics.Errors.Add($"!syntax error: \"Right Parenthesis\" expected after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
             throw new Exception();
         }
     }
@@ -529,7 +528,7 @@ public class Parser
         if (tokens.Count() == 0)
         {
             variables.Clear();
-            Diagnostics.Errors.Add("There's nothing to parse");
+            Diagnostics.Errors.Add("There is nothing to parse.");
             throw new Exception();
         }
         else if (tokens.Count() == 1)
@@ -549,7 +548,7 @@ public class Parser
             if (currentToken.Kind != TokenKind.Semicolon && currentToken.Kind != TokenKind.EndOfFile)
             {
                 variables.Clear();
-                Diagnostics.Errors.Add($"!syntax error: operator or expression is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
+                Diagnostics.Errors.Add($"!syntax error: operator or expression is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
                 throw new Exception();
             }
         }
@@ -564,7 +563,7 @@ public class Parser
         Eat(1);
         if (currentToken.Kind != TokenKind.Identifier)
         {
-            Diagnostics.Errors.Add($"!syntax error: variable not defined after: \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
+            Diagnostics.Errors.Add($"!syntax error: variable not defined after: \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
             throw new Exception();
         }
         int Tokenindex = currentTokenIndex;
@@ -572,14 +571,14 @@ public class Parser
         Eat(1);
         if (currentToken.Kind != TokenKind.Equals)
         {
-            Diagnostics.Errors.Add($"!syntax error: = is missing after \"{tokens[currentTokenIndex - 1].Name}\" at index: {currentTokenIndex - 1}");
+            Diagnostics.Errors.Add($"!syntax error: = is missing after \"{tokens[currentTokenIndex - 1].Name}\" at index: {currentTokenIndex - 1}.");
             throw new Exception();
         }
 
         Eat(1);
         if (currentToken.Kind != TokenKind.Number && currentToken.Kind != TokenKind.String && currentToken.Kind != TokenKind.Identifier && currentToken.Kind != TokenKind.LeftParenthesis && currentToken.Kind != TokenKind.falseKeyWord && currentToken.Kind != TokenKind.trueKeyWord && currentToken.Kind != TokenKind.MinusOperator)
         {
-            Diagnostics.Errors.Add($"!syntax error: variables must have a value");
+            Diagnostics.Errors.Add($"!syntax error: variables must have a value.");
             throw new Exception();
         }
         Token variable = new Token(TokenKind.Identifier, tokens[Tokenindex].Name, ParseExpression());
@@ -592,12 +591,24 @@ public class Parser
             variables.Add(variable.Name, variable.Value);
         }
 
+        void FeedVariables()
+        {
+            for (int i = currentTokenIndex; i < tokens.Count; i++)
+            {
+                if (tokens[i].Name == variable.Name)
+                    tokens[i].Value = variable.Value;
+
+            }
+        }
+        
+        FeedVariables();
+
         if (currentToken.Kind == TokenKind.Comma)
             CreateVar(variables);
 
         if (currentToken.Kind != TokenKind.inKeyWord)
         {
-            Diagnostics.Errors.Add($"!syntax error: \"in\" is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}");
+            Diagnostics.Errors.Add($"!syntax error: \"in\" is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
             throw new Exception();
         }
     }
@@ -611,7 +622,7 @@ public class Parser
         Eat(1);
         if (currentToken.Kind != TokenKind.Identifier)
         {
-            Diagnostics.Errors.Add($"!syntax error: function name is not declared after {tokens[currentTokenIndex - 1]}");
+            Diagnostics.Errors.Add($"!syntax error: function name is not declared after \"{tokens[currentTokenIndex - 1]}\".");
             throw new Exception();
         }
 
@@ -621,7 +632,7 @@ public class Parser
 
         if (currentToken.Kind != TokenKind.LeftParenthesis)
         {
-            Diagnostics.Errors.Add($"!syntax error: ) is missing after {tokens[currentTokenIndex - 1]}");
+            Diagnostics.Errors.Add($"!syntax error: \"Right Parenthesis\" is missing after {tokens[currentTokenIndex - 1]}.");
             throw new Exception();
         }
 
@@ -631,7 +642,7 @@ public class Parser
         {
             if (currentToken.Kind != TokenKind.Identifier)
             {
-                Diagnostics.Errors.Add($"!syntax error: {currentToken} is not a valid argument");
+                Diagnostics.Errors.Add($"!syntax error: {currentToken} is not a valid argument.");
                 throw new Exception();
             }
             args.Add((currentToken.Name, currentToken.Value));
@@ -646,7 +657,7 @@ public class Parser
 
         if (currentToken.Kind != TokenKind.Arrow)
         {
-            Diagnostics.Errors.Add($"!syntax error: \"=>\" is missing after {tokens[currentTokenIndex - 1]}");
+            Diagnostics.Errors.Add($"!syntax error: \"=>\" is missing after {tokens[currentTokenIndex - 1]}.");
             throw new Exception();
         }
 
@@ -684,7 +695,7 @@ public class Parser
 
         if (currentToken.Kind != TokenKind.LeftParenthesis)
         {
-            Diagnostics.Errors.Add($"!syntax error: ( is missing after {tokens[currentTokenIndex - 1]}");
+            Diagnostics.Errors.Add($"!syntax error: \"Left Parenthesis\" is missing after {tokens[currentTokenIndex - 1]}.");
             throw new Exception();
         }
 

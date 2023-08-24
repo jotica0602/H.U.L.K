@@ -13,8 +13,8 @@ public class Lexer
     #region Test Section
     static void Main(string[] args)
     {
-        // Auto();
-        Manual();
+        Auto();
+        // Manual();
     }
 
     #endregion
@@ -382,15 +382,15 @@ public class Lexer
 
     public static void Auto()
     {
+        Console.Clear();
         int i = 0;
-
         while (true)
         {
             try
             {
 
                 // Automatic tests
-                string[] strings = { "function print(x) => x;","function f(x) => let x = x+1 in print(x);","f(3);" };
+                string[] strings = { "let a = 6 , a=a*7,a=a^2 in a;" };
                 var Lexer = new Lexer(strings[i]);
 
                 if (Lexer.sourceCode == string.Empty)
@@ -401,12 +401,11 @@ public class Lexer
 
                 List<Token> tokens = Lexer.Tokenize();
 
-                // Console.WriteLine(String.Join("\n", tokens));
-
                 Parser parser = new Parser(tokens, new List<Funct>());
                 parser.Parse();
 
                 parser.variables.Clear();
+                
                 i++;
                 if (i >= strings.Length)
                     break;
