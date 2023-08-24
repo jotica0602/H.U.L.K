@@ -10,10 +10,12 @@ public class Token
         Value = value;
 
     }
+
     public Token Clone()
     {
         return new Token(Kind, Name, Value);
     }
+
     // Show TokenKind Value Properties
     public override string ToString()
     {

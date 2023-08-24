@@ -17,7 +17,6 @@ public class Parser
     private int currentTokenIndex;
     // Current Token
     private Token currentToken;
-
     // if-else tuples
     private List<(int, int)> ifElseMatches = new List<(int, int)>();
 
@@ -36,15 +35,11 @@ public class Parser
     public void Eat(int positions)
     {
         currentTokenIndex += positions;
+
         if (currentTokenIndex < tokens.Count())
             currentToken = tokens[currentTokenIndex];
         else
             currentToken = new Token(TokenKind.EndOfFile, "", null!);
-    }
-
-    public TokenKind LookAhead(int positions)
-    {
-        return tokens[currentTokenIndex + positions].Kind;
     }
 
     public void ClearVariables()
@@ -59,25 +54,29 @@ public class Parser
     {
         switch (currentToken.Kind)
         {
-
+            // Get number value
             case TokenKind.Number:
                 object factor = currentToken.Value;
                 Eat(1);
                 return (double)factor;
 
+            // Get string value
             case TokenKind.String:
                 factor = currentToken.Value;
                 Eat(1);
                 return (string)factor;
 
+            // Get false
             case TokenKind.falseKeyWord:
                 Eat(1);
                 return false;
 
+            // Get true
             case TokenKind.trueKeyWord:
                 Eat(1);
                 return true;
 
+            // Get variable value or evaluate function
             case TokenKind.Identifier:
 
                 if (variables.ContainsKey(currentToken.Name))
@@ -87,7 +86,7 @@ public class Parser
                     return factor;
                 }
 
-                if (Global.functions.ContainsKey(currentToken.Name))
+                else if (Global.functions.ContainsKey(currentToken.Name))
                 {
                     Funct newFunction = (Funct)Global.functions[currentToken.Name].Clone();
                     stack.Add(newFunction);
@@ -103,51 +102,65 @@ public class Parser
                     throw new Exception();
                 }
 
+            // Create variables
             case TokenKind.letKeyWord:
                 CreateVar();
                 factor = ParseExpression();
                 return factor;
 
+            // Repeat
             case TokenKind.inKeyWord:
                 Eat(1);
                 factor = ParseExpression();
                 return factor;
 
+            // Evaluate conditional expressions
             case TokenKind.ifKeyWord:
                 int elseIndex = FindElseIndex();
                 int ifIndex = currentTokenIndex;
+                
+                // Check if-else structure balance
                 bool balanced = IfMatcher(ifIndex) & ElseMatcher(elseIndex);
-
+                
                 if (balanced)
                 {
                     Eat(1);
+                    // Evaluate if expression
                     bool evaluation = EvaluateIfExpression();
                     if (evaluation)
                     {
+                        // Execute if instruction
                         object ifInstruction = ParseExpression();
                         currentTokenIndex = tokens.Count() - 2;
                         Eat(1);
                         return ifInstruction;
                     }
+                    // In case if expression returns false
                     else
                     {
+                        // Move to the corresponding "if" else match
                         StepIntoElse(ifIndex);
                         Eat(1);
+
+                        // Execute else instruction
                         object elseInstruction = ParseExpression();
                         currentTokenIndex = tokens.Count() - 2;
                         Eat(1);
                         return elseInstruction;
                     }
                 }
+                // In case if-else structure is not balanced
                 else
                 {
                     Diagnostics.Errors.Add("!syntax error: if-else instructions are not balanced.");
                     throw new Exception();
                 }
 
+            // Expressions cannot start with else keyword
             case TokenKind.elseKeyWord:
                 Diagnostics.Errors.Add("!syntax error: if-else instructions are not balanced.");
                 throw new Exception();
+
 
             case TokenKind.LeftParenthesis:
                 Eat(1);
@@ -159,6 +172,7 @@ public class Parser
                 }
                 Eat(1);
                 return factor;
+
 
             case TokenKind.MinusOperator:
                 Eat(1);
@@ -257,7 +271,7 @@ public class Parser
     private object _ParseExpression()
     {
         object expressionResult = ParseTerm();
-        // if the expression is a string we  will 
+        
         if (expressionResult is string)
             return expressionResult;
 
@@ -338,12 +352,14 @@ public class Parser
             Eat(1);
             return (bool)expression;
         }
+
         else if (currentToken.Kind == TokenKind.Not)
         {
             Eat(1);
             object expression = !EvaluateInnerExpression();
             return (bool)expression;
         }
+
         else
         {
             object leftExpression = ParseExpression();
@@ -517,6 +533,7 @@ public class Parser
             Diagnostics.Errors.Add("There is nothing to parse.");
             throw new Exception();
         }
+
         else if (tokens.Count() == 1)
         {
             variables.Clear();
@@ -524,6 +541,7 @@ public class Parser
             throw new Exception();
 
         }
+
         else if (tokens.Count() > 1)
         {
             object result = ParseExpression();
@@ -567,6 +585,7 @@ public class Parser
             Diagnostics.Errors.Add($"!syntax error: variables must have a value.");
             throw new Exception();
         }
+
         Token variable = new Token(TokenKind.Identifier, tokens[Tokenindex].Name, ParseExpression());
 
         if (!variables.ContainsKey(variable.Name))
@@ -590,6 +609,7 @@ public class Parser
 
     public void CreateFunction(Dictionary<string, Funct> functions)
     {
+        // Initialize function parameters
         string functionName;
         List<(string, object)> args = new List<(string, object)>();
         List<Token> body = new List<Token>();
@@ -601,6 +621,7 @@ public class Parser
             throw new Exception();
         }
 
+        // Get function name
         functionName = currentToken.Name;
 
         Eat(1);
@@ -613,6 +634,7 @@ public class Parser
 
         Eat(1);
 
+        // Get function arguments
         while (currentToken.Kind != TokenKind.RightParenthesis)
         {
             if (currentToken.Kind != TokenKind.Identifier)
@@ -620,9 +642,9 @@ public class Parser
                 Diagnostics.Errors.Add($"!syntax error: {currentToken} is not a valid argument.");
                 throw new Exception();
             }
+
             args.Add((currentToken.Name, currentToken.Value));
             Eat(1);
-
 
             if (currentToken.Kind == TokenKind.Comma)
                 Eat(1);
@@ -638,11 +660,13 @@ public class Parser
 
         Eat(1);
 
+        // Get function body
         while (currentToken.Kind != TokenKind.Semicolon)
         {
             body.Add(currentToken);
             Eat(1);
         }
+
         body.Add(new Token(TokenKind.Semicolon, ";", null!));
 
         Funct function = new Funct(args, body);
@@ -652,6 +676,7 @@ public class Parser
             functions.Add(functionName, function);
             Console.WriteLine($"!function: \"{functionName}\" created.");
         }
+
         else
         {
             functions.Remove(functionName);
@@ -676,6 +701,7 @@ public class Parser
 
         Eat(1);
 
+        // Get function arguments value
         int index = 0;
         while (currentToken.Kind != TokenKind.RightParenthesis)
         {
@@ -692,20 +718,7 @@ public class Parser
 
         }
 
-        void FeedBody()
-        {
-            for (int i = 0; i < function.Args.Count; i++)
-            {
-                foreach (var token in function.Body)
-                {
-                    if (token.Name == function.Args[i].Item1)
-                        token.Value = function.Args[i].Item2;
-                }
-            }
-        }
-
-        FeedBody();
-
+        // Execute function body
         return function.Execute();
     }
     #endregion

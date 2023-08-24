@@ -20,6 +20,8 @@ public class Lexer
     #endregion
 
     #region  Lexer Object
+
+
     public readonly string sourceCode;
     private int currentPosition;
 
@@ -50,22 +52,28 @@ public class Lexer
                 currentPosition++;
                 continue;
             }
-            // Identifiers
+            
+            // Add identifier
             else if (IsLetter(currentChar))
                 tokens.Add(IdKind());
-            // Quoted Strings
+
+            // Add quoted string
             else if (currentChar == '"')
                 tokens.Add(StringKind());
-            // Digits
+
+            // Add number
             else if (char.IsDigit(currentChar))
                 tokens.Add(Number());
-            // Operators 
+
+            // Add operator 
             else if (IsOperator(currentChar))
                 tokens.Add(Operator());
-            // Punctuators
+
+            // Add punctuator
             else if (IsPunctuator(currentChar))
                 tokens.Add(Punctuator());
-            // unknown tokens
+
+            // Unknown token
             else
             {
                 tokens.Add(new Token(TokenKind.Unknown, currentChar.ToString(), null!));
@@ -73,6 +81,7 @@ public class Lexer
                 currentPosition++;
             }
         }
+        
         if (tokens.Last().Name != ";")
         {
             Diagnostics.Errors.Add("!syntax error: expression must end with \";\"");
@@ -330,6 +339,8 @@ public class Lexer
     }
     private char LookAhead(int positions)
     {
+        if( (currentPosition + positions) >= sourceCode.Length )
+            return ' ';
         return sourceCode[currentPosition + positions];
     }
 
@@ -398,7 +409,7 @@ public class Lexer
             {
 
                 // Automatic tests
-                string[] strings = { "function fib(n) => if(n>=1) fib(n-1) + fib(n-2) else 1;", "fib(5);" };
+                string[] strings = { "1" };
                 var Lexer = new Lexer(strings[i]);
 
                 if (Lexer.sourceCode == string.Empty)
@@ -410,8 +421,8 @@ public class Lexer
                 List<Token> tokens = Lexer.Tokenize();
 
                 Parser parser = new Parser(tokens, new Dictionary<string, object>(), new List<Funct>());
-                parser.Parse();
 
+                parser.Parse();
                 parser.ClearVariables();
 
                 i++;
@@ -422,7 +433,7 @@ public class Lexer
             {
                 Console.WriteLine(Diagnostics.Errors[0]);
                 Diagnostics.Errors.Clear();
-                // continue;
+
                 break;
             }
         }
@@ -449,8 +460,8 @@ public class Lexer
                 List<Token> tokens = Lexer.Tokenize();
 
                 Parser parser = new Parser(tokens, new Dictionary<string, object>(), new List<Funct>());
-                parser.Parse();
 
+                parser.Parse();
                 parser.ClearVariables();
 
             }
@@ -458,6 +469,7 @@ public class Lexer
             {
                 Console.WriteLine(Diagnostics.Errors[0]);
                 Diagnostics.Errors.Clear();
+
                 continue;
             }
         }
