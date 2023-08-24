@@ -6,7 +6,7 @@ public class Parser
     // Tokens List to Parse
     private List<Token> tokens;
     // VarList to keep record of created Variables
-    public Dictionary<string, object> variables = new Dictionary<string, object>();
+    private Dictionary<string, object> variables;
     // Call Stack
     private List<Funct> stack;
 
@@ -18,17 +18,20 @@ public class Parser
 
 
     // if-else tuples
-    public static List<(int, int)> ifElseMatches = new List<(int, int)>();
+    private List<(int, int)> ifElseMatches = new List<(int, int)>();
 
     // Constructor
-    public Parser(List<Token> tokens, List<Funct> stack)
+    public Parser(List<Token> tokens, Dictionary<string, object> variables, List<Funct> stack)
     {
         this.tokens = tokens;
+        this.variables = variables;
         this.stack = stack;
         currentTokenIndex = 0;
         currentToken = tokens[currentTokenIndex];
     }
-    // Now we can move through our Tokens List
+
+
+    // Eat function: now we can move through our tokens list
     public void Eat(int positions)
     {
         currentTokenIndex += positions;
@@ -43,6 +46,15 @@ public class Parser
         return tokens[currentTokenIndex + positions].Kind;
     }
 
+    public Dictionary<string, object> GetVariables()
+    {
+        return variables;
+    }
+
+    public void ClearVariables()
+    {
+        variables.Clear();
+    }
     #endregion
 
     #region Parser Recursive Functions
@@ -85,33 +97,24 @@ public class Parser
         // if there is an identifier, we check if it is an existent variable or function and return its value
         else if (currentToken.Kind == TokenKind.Identifier)
         {
-            if (currentToken.Value != null)
+            if (variables.ContainsKey(currentToken.Name))
             {
-                object factor = currentToken.Value;
+                object factor = variables[currentToken.Name];
+                Eat(1);
+                return factor;
+            }
+            if (Global.functions.ContainsKey(currentToken.Name))
+            {
+                Funct newFunction = (Funct)Global.functions[currentToken.Name].Clone();
+                stack.Add(newFunction);
+                object factor = EvaluateFunction(stack.Last());
                 Eat(1);
                 return factor;
             }
             else
             {
-                if (variables.ContainsKey(currentToken.Name))
-                {
-                    object factor = variables[currentToken.Name];
-                    Eat(1);
-                    return factor;
-                }
-                if (Global.functions.ContainsKey(currentToken.Name))
-                {
-                    Funct newFunction = (Funct)Global.functions[currentToken.Name].Clone();
-                    stack.Add(newFunction);
-                    object factor = EvaluateFunction(stack.Last());
-                    Eat(1);
-                    return factor;
-                }
-                else
-                {
-                    Diagnostics.Errors.Add($"!semantic error: function or variable \"{tokens[currentTokenIndex].Name}\" does not exists.");
-                    throw new Exception();
-                }
+                Diagnostics.Errors.Add($"!semantic error: function or variable \"{tokens[currentTokenIndex].Name}\" does not exists.");
+                throw new Exception();
             }
         }
 
@@ -585,23 +588,12 @@ public class Parser
 
         if (!variables.ContainsKey(variable.Name))
             variables.Add(variable.Name, variable.Value);
+
         else
         {
             variables.Remove(variable.Name);
             variables.Add(variable.Name, variable.Value);
         }
-
-        void FeedVariables()
-        {
-            for (int i = currentTokenIndex; i < tokens.Count; i++)
-            {
-                if (tokens[i].Name == variable.Name)
-                    tokens[i].Value = variable.Value;
-
-            }
-        }
-        
-        FeedVariables();
 
         if (currentToken.Kind == TokenKind.Comma)
             CreateVar(variables);
@@ -727,7 +719,6 @@ public class Parser
                         token.Value = function.Args[i].Item2;
                 }
             }
-
         }
 
         FeedBody();

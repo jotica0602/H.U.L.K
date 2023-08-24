@@ -29,7 +29,11 @@ public class Funct
 
     public object Execute()
     {
-        Parser parser = new Parser(Body, new List<Funct>());
+        Dictionary<string,object> variables = new Dictionary<string,object>();
+        foreach(var arg in Args){
+            variables.Add(arg.Item1,arg.Item2);
+        }
+        Parser parser = new Parser(Body, new Dictionary<string, object>(variables), new List<Funct>());
         return parser.ParseExpression();
     }
 

@@ -390,7 +390,7 @@ public class Lexer
             {
 
                 // Automatic tests
-                string[] strings = { "let a = 6 , a=a*7,a=a^2 in a;" };
+                string[] strings = { "function fib(n) => if(n>=1) fib(n-1) + fib(n-2) else 1;","fib(5);" };
                 var Lexer = new Lexer(strings[i]);
 
                 if (Lexer.sourceCode == string.Empty)
@@ -401,10 +401,10 @@ public class Lexer
 
                 List<Token> tokens = Lexer.Tokenize();
 
-                Parser parser = new Parser(tokens, new List<Funct>());
+                Parser parser = new Parser(tokens, new Dictionary<string, object>(), new List<Funct>());
                 parser.Parse();
 
-                parser.variables.Clear();
+                parser.ClearVariables();
                 
                 i++;
                 if (i >= strings.Length)
@@ -440,10 +440,10 @@ public class Lexer
 
                 List<Token> tokens = Lexer.Tokenize();
 
-                Parser parser = new Parser(tokens, new List<Funct>());
+                Parser parser = new Parser(tokens, new Dictionary<string, object>(), new List<Funct>());
                 parser.Parse();
 
-                parser.variables.Clear();
+                parser.ClearVariables();
 
             }
             catch (Exception)
