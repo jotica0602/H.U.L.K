@@ -459,7 +459,6 @@ public class Lexer
                 }
 
                 List<Token> tokens = Lexer.Tokenize();
-                Console.WriteLine(string.Join('\n', tokens));
 
                 Parser parser = new Parser(tokens, new Dictionary<string, object>(), new List<Funct>());
 

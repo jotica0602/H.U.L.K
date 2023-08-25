@@ -126,7 +126,7 @@ public class Parser
                 }
 
                 // </In case if expression returns false
-                else if (balanced && evaluation==false)
+                else if (balanced && !evaluation)
                 {
                     // Move to the corresponding "if" else match
                     StepIntoElse(ifIndex);
