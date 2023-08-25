@@ -34,6 +34,7 @@ public class Lexer
     #endregion 
 
     #region Lexer Main Function: Tokenize
+
     // We need to split the Tokens
     // So I created a function named Tokenize, wich returns a List of Tokens containing all the Tokens
     public List<Token> Tokenize()
@@ -84,7 +85,7 @@ public class Lexer
         
         if (tokens.Last().Name != ";")
         {
-            Diagnostics.Errors.Add("!syntax error: expression must end with \";\"");
+            Diagnostics.Errors.Add("!syntax error: expression must end with \";\".");
             throw new Exception();
         }
         return tokens;
@@ -112,8 +113,6 @@ public class Lexer
 
             currentPosition++;
         }
-
-        number = number.Replace('.', ',');
 
         return new Token(TokenKind.Number, null!, double.Parse(number));
     }
@@ -365,6 +364,7 @@ public class Lexer
         foreach (var _operator in Operators)
             if (currentChar == _operator)
                 return true;
+
         return false;
     }
 
@@ -379,6 +379,7 @@ public class Lexer
         foreach (var punctuator in Punctuators)
             if (currentChar == punctuator)
                 return true;
+
         return false;
     }
 
@@ -394,6 +395,7 @@ public class Lexer
         foreach (var keyword in keywords)
             if (idkind == keyword)
                 return true;
+                
         return false;
     }
 
@@ -407,9 +409,8 @@ public class Lexer
         {
             try
             {
-
                 // Automatic tests
-                string[] strings = { "1" };
+                string[] strings = { "0.3 + 0.2;"};
                 var Lexer = new Lexer(strings[i]);
 
                 if (Lexer.sourceCode == string.Empty)
@@ -424,7 +425,7 @@ public class Lexer
 
                 parser.Parse();
                 parser.ClearVariables();
-
+                
                 i++;
                 if (i >= strings.Length)
                     break;
@@ -458,6 +459,7 @@ public class Lexer
                 }
 
                 List<Token> tokens = Lexer.Tokenize();
+                Console.WriteLine(string.Join('\n', tokens));
 
                 Parser parser = new Parser(tokens, new Dictionary<string, object>(), new List<Funct>());
 
@@ -469,7 +471,6 @@ public class Lexer
             {
                 Console.WriteLine(Diagnostics.Errors[0]);
                 Diagnostics.Errors.Clear();
-
                 continue;
             }
         }

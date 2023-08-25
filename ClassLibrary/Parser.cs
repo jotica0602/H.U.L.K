@@ -5,22 +5,22 @@ using System.Runtime.CompilerServices;
 public class Parser
 {
     #region Parser Object
-    // Tokens List to Parse
+    // </Tokens List to Parse
     private List<Token> tokens;
-    // VarList to keep record of created Variables
+    // </VarList to keep record of created Variables
     private Dictionary<string, object> variables;
-    // Call Stack
+    // </Call Stack
     private List<Funct> stack;
 
 
-    // Current Index
+    // </Current Index
     private int currentTokenIndex;
-    // Current Token
+    // </Current Token
     private Token currentToken;
-    // if-else tuples
+    // </if-else tuples
     private List<(int, int)> ifElseMatches = new List<(int, int)>();
 
-    // Constructor
+    // </Constructor
     public Parser(List<Token> tokens, Dictionary<string, object> variables, List<Funct> stack)
     {
         this.tokens = tokens;
@@ -31,7 +31,7 @@ public class Parser
     }
 
 
-    // Eat function: now we can move through our tokens list
+    // </Eat function: now we can move through our tokens list
     public void Eat(int positions)
     {
         currentTokenIndex += positions;
@@ -54,29 +54,29 @@ public class Parser
     {
         switch (currentToken.Kind)
         {
-            // Get number value
+            // </Get number value
             case TokenKind.Number:
                 object factor = currentToken.Value;
                 Eat(1);
                 return (double)factor;
 
-            // Get string value
+            // </Get string value
             case TokenKind.String:
                 factor = currentToken.Value;
                 Eat(1);
                 return (string)factor;
 
-            // Get false
+            // </Get false
             case TokenKind.falseKeyWord:
                 Eat(1);
                 return false;
 
-            // Get true
+            // </Get true
             case TokenKind.trueKeyWord:
                 Eat(1);
                 return true;
 
-            // Get variable value or evaluate function
+            // </Get variable value or evaluate function
             case TokenKind.Identifier:
 
                 if (variables.ContainsKey(currentToken.Name))
@@ -102,66 +102,56 @@ public class Parser
                     throw new Exception();
                 }
 
-            // Create variables
-            case TokenKind.letKeyWord:
-                CreateVar();
-                factor = ParseExpression();
-                return factor;
-
-            // Repeat
-            case TokenKind.inKeyWord:
-                Eat(1);
-                factor = ParseExpression();
-                return factor;
-
-            // Evaluate conditional expressions
+            // </Evaluate conditional expressions
             case TokenKind.ifKeyWord:
                 int elseIndex = FindElseIndex();
                 int ifIndex = currentTokenIndex;
-                
-                // Check if-else structure balance
-                bool balanced = IfMatcher(ifIndex) & ElseMatcher(elseIndex);
-                
-                if (balanced)
-                {
-                    Eat(1);
-                    // Evaluate if expression
-                    bool evaluation = EvaluateIfExpression();
-                    if (evaluation)
-                    {
-                        // Execute if instruction
-                        object ifInstruction = ParseExpression();
-                        currentTokenIndex = tokens.Count() - 2;
-                        Eat(1);
-                        return ifInstruction;
-                    }
-                    // In case if expression returns false
-                    else
-                    {
-                        // Move to the corresponding "if" else match
-                        StepIntoElse(ifIndex);
-                        Eat(1);
 
-                        // Execute else instruction
-                        object elseInstruction = ParseExpression();
-                        currentTokenIndex = tokens.Count() - 2;
-                        Eat(1);
-                        return elseInstruction;
-                    }
+                // </Check if-else structure balance
+                bool balanced = IfMatcher(ifIndex) & ElseMatcher(elseIndex);
+
+                // </Evaluate if expression
+                Eat(1);
+                bool evaluation = EvaluateIfExpression();
+                
+                // </In case if expression returns true
+                if (balanced && evaluation)
+                {
+                    // Execute if instruction
+                    object ifInstruction = ParseExpression();
+                    currentTokenIndex = tokens.Count() - 2;
+                    Eat(1);
+                    return ifInstruction;
+
                 }
-                // In case if-else structure is not balanced
+
+                // </In case if expression returns false
+                else if (balanced && evaluation==false)
+                {
+                    // Move to the corresponding "if" else match
+                    StepIntoElse(ifIndex);
+                    Eat(1);
+
+                    // Execute else instruction
+                    object elseInstruction = ParseExpression();
+                    currentTokenIndex = tokens.Count() - 2;
+                    Eat(1);
+                    return elseInstruction;
+                }
+
+                // </In case if-else structure is not balanced
                 else
                 {
                     Diagnostics.Errors.Add("!syntax error: if-else instructions are not balanced.");
                     throw new Exception();
                 }
 
-            // Expressions cannot start with else keyword
+            // </Expressions cannot start with else keyword
             case TokenKind.elseKeyWord:
                 Diagnostics.Errors.Add("!syntax error: if-else instructions are not balanced.");
                 throw new Exception();
 
-
+            // </In keyword means we stepped on a new inner expression
             case TokenKind.LeftParenthesis:
                 Eat(1);
                 factor = ParseExpression();
@@ -173,11 +163,28 @@ public class Parser
                 Eat(1);
                 return factor;
 
-
+            case TokenKind.PlusOperator:
+                Eat(1);
+                factor = 0 + (double)ParseFactor();
+                return factor;
+                
             case TokenKind.MinusOperator:
                 Eat(1);
                 factor = 0 - (double)ParseFactor();
                 return factor;
+
+            // </Create variables
+            case TokenKind.letKeyWord:
+                CreateVar();
+                factor = ParseExpression();
+                return factor;
+
+            // </In keyword means we stepped on a new expression 
+            case TokenKind.inKeyWord:
+                Eat(1);
+                factor = ParseExpression();
+                return factor;
+
 
             default:
                 Diagnostics.Errors.Add($"!syntax error: factor or expression is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
@@ -188,9 +195,9 @@ public class Parser
 
     private object _ParseTerm()
     {
-        
+
         object term = ParseFactor();
-    
+
         if (term is string)
             return term;
 
@@ -271,7 +278,7 @@ public class Parser
     private object _ParseExpression()
     {
         object expressionResult = ParseTerm();
-        
+
         if (expressionResult is string)
             return expressionResult;
 
@@ -444,7 +451,7 @@ public class Parser
         Eat(1);
 
         bool evaluation = EvaluateBooleanExpression();
-        
+
         if (currentToken.Kind == TokenKind.RightParenthesis)
         {
             Eat(1);
@@ -530,7 +537,7 @@ public class Parser
         if (tokens.Count() == 0)
         {
             variables.Clear();
-            Diagnostics.Errors.Add("There is nothing to parse.");
+            Diagnostics.Errors.Add("there is nothing to parse.");
             throw new Exception();
         }
 
@@ -561,7 +568,8 @@ public class Parser
     #endregion
 
     #region Variables and Functions Creation
-    // Create Variable Utility Function
+    
+    // </Create Variable Utility Function
     private void CreateVar()
     {
         Eat(1);
@@ -609,7 +617,7 @@ public class Parser
 
     public void CreateFunction(Dictionary<string, Funct> functions)
     {
-        // Initialize function parameters
+        // </Initialize function parameters
         string functionName;
         List<(string, object)> args = new List<(string, object)>();
         List<Token> body = new List<Token>();
@@ -621,25 +629,25 @@ public class Parser
             throw new Exception();
         }
 
-        // Get function name
+        // </Get function name
         functionName = currentToken.Name;
 
         Eat(1);
 
         if (currentToken.Kind != TokenKind.LeftParenthesis)
         {
-            Diagnostics.Errors.Add($"!syntax error: \"Right Parenthesis\" is missing after {tokens[currentTokenIndex - 1]}.");
+            Diagnostics.Errors.Add($"!syntax error: \"Right Parenthesis\" is missing after \"{tokens[currentTokenIndex - 1]}\".");
             throw new Exception();
         }
 
         Eat(1);
 
-        // Get function arguments
+        // </Get function arguments
         while (currentToken.Kind != TokenKind.RightParenthesis)
         {
             if (currentToken.Kind != TokenKind.Identifier)
             {
-                Diagnostics.Errors.Add($"!syntax error: {currentToken} is not a valid argument.");
+                Diagnostics.Errors.Add($"!syntax error: \"{currentToken}\" is not a valid argument.");
                 throw new Exception();
             }
 
@@ -654,13 +662,13 @@ public class Parser
 
         if (currentToken.Kind != TokenKind.Arrow)
         {
-            Diagnostics.Errors.Add($"!syntax error: \"=>\" is missing after {tokens[currentTokenIndex - 1]}.");
+            Diagnostics.Errors.Add($"!syntax error: \"=>\" is missing after \"{tokens[currentTokenIndex - 1]}\".");
             throw new Exception();
         }
 
         Eat(1);
 
-        // Get function body
+        // </Get function body
         while (currentToken.Kind != TokenKind.Semicolon)
         {
             body.Add(currentToken);
@@ -669,6 +677,7 @@ public class Parser
 
         body.Add(new Token(TokenKind.Semicolon, ";", null!));
 
+        // </Build function
         Funct function = new Funct(args, body);
 
         if (!functions.ContainsKey(functionName))
@@ -695,13 +704,13 @@ public class Parser
 
         if (currentToken.Kind != TokenKind.LeftParenthesis)
         {
-            Diagnostics.Errors.Add($"!syntax error: \"Left Parenthesis\" is missing after {tokens[currentTokenIndex - 1]}.");
+            Diagnostics.Errors.Add($"!syntax error: \"Left Parenthesis\" is missing after \"{tokens[currentTokenIndex - 1]}\".");
             throw new Exception();
         }
 
         Eat(1);
 
-        // Get function arguments value
+        // </Get function arguments values
         int index = 0;
         while (currentToken.Kind != TokenKind.RightParenthesis)
         {
@@ -718,8 +727,16 @@ public class Parser
 
         }
 
-        // Execute function body
-        return function.Execute();
+        // </Execute function body
+        object evaluation = function.Execute();
+
+        if(currentToken.Kind != TokenKind.RightParenthesis)
+        {
+            Diagnostics.Errors.Add($"!syntax error: \"Right Parenthesis\" is missing after \"{tokens[currentTokenIndex-1]}\" at index {currentTokenIndex}");
+            throw new Exception();
+        }
+        
+        return evaluation;
     }
     #endregion
 }
