@@ -60,7 +60,7 @@ public class Lexer
 
             // Add quoted string
             else if (currentChar == '"')
-                tokens.Add(StringKind());
+                tokens.Add(String());
 
             // Add number
             else if (char.IsDigit(currentChar))
@@ -102,7 +102,6 @@ public class Lexer
         
         while ((currentPosition < sourceCode.Length) && (char.IsDigit(sourceCode[currentPosition]) || sourceCode[currentPosition] == '.'))
         {
-            
             number += sourceCode[currentPosition];
 
             if(IsLetter(LookAhead(1)))
@@ -137,7 +136,7 @@ public class Lexer
             return new Token(TokenKind.Identifier, idkind, null!);
     }
 
-    private Token StringKind()
+    private Token String()
     {
         currentPosition++;
         string str = "";
@@ -361,11 +360,12 @@ public class Lexer
             '=','<','>','!','|','&'
         };
 
-        foreach (var _operator in Operators)
-            if (currentChar == _operator)
-                return true;
+        return Operators.Contains(currentChar);
+        // foreach (var _operator in Operators)
+        //     if (currentChar == _operator)
+        //         return true;
 
-        return false;
+        // return false;
     }
 
     private static bool IsPunctuator(char currentChar)
@@ -376,11 +376,12 @@ public class Lexer
             '[', ']','.','"',':'
         };
 
-        foreach (var punctuator in Punctuators)
-            if (currentChar == punctuator)
-                return true;
+        return Punctuators.Contains(currentChar);
+        // foreach (var punctuator in Punctuators)
+        //     if (currentChar == punctuator)
+        //         return true;
 
-        return false;
+        // return false;
     }
 
     private static bool IsKeyWord(string idkind)
@@ -392,11 +393,12 @@ public class Lexer
             "false"
         };
 
-        foreach (var keyword in keywords)
-            if (idkind == keyword)
-                return true;
+        return keywords.Contains(idkind);
+        // foreach (var keyword in keywords)
+        //     if (idkind == keyword)
+        //         return true;
                 
-        return false;
+        // return false;
     }
 
     #endregion

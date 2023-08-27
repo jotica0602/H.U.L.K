@@ -97,7 +97,6 @@ public class Parser
 
                 else
                 {
-
                     Diagnostics.Errors.Add($"!semantic error: function or variable \"{tokens[currentTokenIndex].Name}\" does not exists.");
                     throw new Exception();
                 }
@@ -119,8 +118,7 @@ public class Parser
                 {
                     // Execute if instruction
                     object ifInstruction = ParseExpression();
-                    currentTokenIndex = tokens.Count() - 2;
-                    Eat(1);
+                    currentTokenIndex = tokens.Count() - 1;
                     return ifInstruction;
 
                 }
@@ -134,8 +132,7 @@ public class Parser
 
                     // Execute else instruction
                     object elseInstruction = ParseExpression();
-                    currentTokenIndex = tokens.Count() - 2;
-                    Eat(1);
+                    currentTokenIndex = tokens.Count() - 1;
                     return elseInstruction;
                 }
 
@@ -151,7 +148,7 @@ public class Parser
                 Diagnostics.Errors.Add("!syntax error: if-else instructions are not balanced.");
                 throw new Exception();
 
-            // </In keyword means we stepped on a new inner expression
+            // </A left parenthesis means we stepped on a new inner expression
             case TokenKind.LeftParenthesis:
                 Eat(1);
                 factor = ParseExpression();
@@ -600,10 +597,9 @@ public class Parser
             variables.Add(variable.Name, variable.Value);
 
         else
-        {
-            variables.Remove(variable.Name);
-            variables.Add(variable.Name, variable.Value);
-        }
+            variables[variable.Name]=variable.Value;
+            // variables.Remove(variable.Name);
+            // variables.Add(variable.Name, variable.Value);
 
         if (currentToken.Kind == TokenKind.Comma)
             CreateVar();
@@ -647,7 +643,7 @@ public class Parser
         {
             if (currentToken.Kind != TokenKind.Identifier)
             {
-                Diagnostics.Errors.Add($"!syntax error: \"{currentToken}\" is not a valid argument.");
+                Diagnostics.Errors.Add($"!syntax error: \"{currentToken}\" is not a valid argument at index {currentTokenIndex}");
                 throw new Exception();
             }
 
@@ -688,10 +684,11 @@ public class Parser
 
         else
         {
-            functions.Remove(functionName);
-            Console.WriteLine($"!old function: \"{functionName}\" removed.");
-            functions.Add(functionName, function);
-            Console.WriteLine($"!new function: \"{functionName}\" created.");
+            functions[functionName] = function;
+            Console.WriteLine($"!old function: \"{functionName}\" edited.");
+            // functions.Remove(functionName);
+            // functions.Add(functionName, function);
+            // Console.WriteLine($"!new function: \"{functionName}\" created.");
         }
     }
 
@@ -710,7 +707,7 @@ public class Parser
 
         Eat(1);
 
-        // </Get function arguments values
+        // </Get function argument values
         int index = 0;
         while (currentToken.Kind != TokenKind.RightParenthesis)
         {
