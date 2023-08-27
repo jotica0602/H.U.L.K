@@ -39,7 +39,7 @@ public class Parser
         if (currentTokenIndex < tokens.Count())
             currentToken = tokens[currentTokenIndex];
         else
-            currentToken = new Token(TokenKind.EndOfFile, "", null!);
+            currentToken = new PureToken(TokenKind.EndOfFile);
     }
 
     public void ClearVariables()
@@ -56,13 +56,13 @@ public class Parser
         {
             // </Get number value
             case TokenKind.Number:
-                object factor = currentToken.Value;
+                object factor = currentToken.GetValue();
                 Eat(1);
                 return (double)factor;
 
             // </Get string value
             case TokenKind.String:
-                factor = currentToken.Value;
+                factor = currentToken.GetValue();
                 Eat(1);
                 return (string)factor;
 
@@ -79,16 +79,16 @@ public class Parser
             // </Get variable value or evaluate function
             case TokenKind.Identifier:
 
-                if (variables.ContainsKey(currentToken.Name))
+                if (variables.ContainsKey(currentToken.GetName()))
                 {
-                    factor = variables[currentToken.Name];
+                    factor = variables[currentToken.GetName()];
                     Eat(1);
                     return factor;
                 }
 
-                else if (Global.functions.ContainsKey(currentToken.Name))
+                else if (Global.functions.ContainsKey(currentToken.GetName()))
                 {
-                    Funct newFunction = (Funct)Global.functions[currentToken.Name].Clone();
+                    Funct newFunction = (Funct)Global.functions[currentToken.GetName()];
                     stack.Add(newFunction);
                     factor = EvaluateFunction(stack.Last());
                     Eat(1);
@@ -97,7 +97,7 @@ public class Parser
 
                 else
                 {
-                    Diagnostics.Errors.Add($"!semantic error: function or variable \"{tokens[currentTokenIndex].Name}\" does not exists.");
+                    Diagnostics.Errors.Add($"!semantic error: function or variable \"{tokens[currentTokenIndex].GetName()}\" does not exists.");
                     throw new Exception();
                 }
 
@@ -112,7 +112,7 @@ public class Parser
                 // </Evaluate if expression
                 Eat(1);
                 bool evaluation = EvaluateIfExpression();
-                
+
                 // </In case if expression returns true
                 if (balanced && evaluation)
                 {
@@ -164,7 +164,7 @@ public class Parser
                 Eat(1);
                 factor = 0 + (double)ParseFactor();
                 return factor;
-                
+
             case TokenKind.MinusOperator:
                 Eat(1);
                 factor = 0 - (double)ParseFactor();
@@ -565,7 +565,7 @@ public class Parser
     #endregion
 
     #region Variables and Functions Creation
-    
+
     // </Create Variable Utility Function
     private void CreateVar()
     {
@@ -575,12 +575,13 @@ public class Parser
             Diagnostics.Errors.Add($"!syntax error: variable not defined after: \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
             throw new Exception();
         }
-        int Tokenindex = currentTokenIndex;
+
+        string varName = currentToken.GetName();
 
         Eat(1);
         if (currentToken.Kind != TokenKind.Equals)
         {
-            Diagnostics.Errors.Add($"!syntax error: = is missing after \"{tokens[currentTokenIndex - 1].Name}\" at index: {currentTokenIndex - 1}.");
+            Diagnostics.Errors.Add($"!syntax error: = is missing after \"{tokens[currentTokenIndex - 1].GetName()}\" at index: {currentTokenIndex - 1}.");
             throw new Exception();
         }
 
@@ -591,15 +592,13 @@ public class Parser
             throw new Exception();
         }
 
-        Token variable = new Token(TokenKind.Identifier, tokens[Tokenindex].Name, ParseExpression());
+        Variable variable = new Variable(TokenKind.Identifier, varName, ParseExpression());
 
-        if (!variables.ContainsKey(variable.Name))
-            variables.Add(variable.Name, variable.Value);
+        if (!variables.ContainsKey(variable.GetName()))
+            variables.Add(variable.GetName(), variable.Value);
 
         else
-            variables[variable.Name]=variable.Value;
-            // variables.Remove(variable.Name);
-            // variables.Add(variable.Name, variable.Value);
+            variables[variable.GetName()] = variable.Value;
 
         if (currentToken.Kind == TokenKind.Comma)
             CreateVar();
@@ -626,7 +625,7 @@ public class Parser
         }
 
         // </Get function name
-        functionName = currentToken.Name;
+        functionName = currentToken.GetName();
 
         Eat(1);
 
@@ -647,7 +646,7 @@ public class Parser
                 throw new Exception();
             }
 
-            args.Add((currentToken.Name, currentToken.Value));
+            args.Add((currentToken.GetName(), null!));
             Eat(1);
 
             if (currentToken.Kind == TokenKind.Comma)
@@ -671,7 +670,7 @@ public class Parser
             Eat(1);
         }
 
-        body.Add(new Token(TokenKind.Semicolon, ";", null!));
+        body.Add(new CommonToken(TokenKind.Semicolon, ";"));
 
         // </Build function
         Funct function = new Funct(args, body);
@@ -686,9 +685,6 @@ public class Parser
         {
             functions[functionName] = function;
             Console.WriteLine($"!old function: \"{functionName}\" edited.");
-            // functions.Remove(functionName);
-            // functions.Add(functionName, function);
-            // Console.WriteLine($"!new function: \"{functionName}\" created.");
         }
     }
 
@@ -727,12 +723,12 @@ public class Parser
         // </Execute function body
         object evaluation = function.Execute();
 
-        if(currentToken.Kind != TokenKind.RightParenthesis)
+        if (currentToken.Kind != TokenKind.RightParenthesis)
         {
-            Diagnostics.Errors.Add($"!syntax error: \"Right Parenthesis\" is missing after \"{tokens[currentTokenIndex-1]}\" at index {currentTokenIndex}");
+            Diagnostics.Errors.Add($"!syntax error: \"Right Parenthesis\" is missing after \"{tokens[currentTokenIndex - 1]}\" at index {currentTokenIndex}");
             throw new Exception();
         }
-        
+
         return evaluation;
     }
     #endregion

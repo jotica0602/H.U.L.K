@@ -21,7 +21,7 @@ public class Funct
 
         foreach (var token in Body)
         {
-            clone.Body.Add(token.Clone());
+            clone.Body.Add(token);
         }
 
         return clone;
