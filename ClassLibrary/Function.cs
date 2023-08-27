@@ -10,23 +10,6 @@ public class Funct
         Body = body;
     }
 
-    public object Clone()
-    {
-        Funct clone = new Funct(new List<(string, object)>(), new List<Token>());
-
-        foreach (var arg in Args)
-        {
-            clone.Args.Add((arg.Item1, arg.Item2));
-        }
-
-        foreach (var token in Body)
-        {
-            clone.Body.Add(token);
-        }
-
-        return clone;
-    }
-
     public object Execute()
     {
         Dictionary<string, object> variables = new Dictionary<string, object>();

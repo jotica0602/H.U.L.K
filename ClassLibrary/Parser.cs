@@ -34,23 +34,20 @@ public class Parser
     // </Eat function: now we can move through our tokens list
     public void Eat(int positions)
     {
-        currentTokenIndex += positions;
-
+        currentTokenIndex += positions;        
         if (currentTokenIndex < tokens.Count())
             currentToken = tokens[currentTokenIndex];
         else
-            currentToken = new PureToken(TokenKind.EndOfFile);
+            currentToken = new Keyword(TokenKind.EndOfFile);
     }
 
-    public void ClearVariables()
-    {
-        variables.Clear();
-    }
+    public void ClearVariables() => variables.Clear();
+
     #endregion
 
     #region Parser Recursive Functions
 
-    private object ParseFactor()
+    private object ParseTerm()
     {
         switch (currentToken.Kind)
         {
@@ -88,8 +85,7 @@ public class Parser
 
                 else if (Global.functions.ContainsKey(currentToken.GetName()))
                 {
-                    Funct newFunction = (Funct)Global.functions[currentToken.GetName()];
-                    stack.Add(newFunction);
+                    stack.Add(Global.functions[currentToken.GetName()]);
                     factor = EvaluateFunction(stack.Last());
                     Eat(1);
                     return factor;
@@ -162,12 +158,12 @@ public class Parser
 
             case TokenKind.PlusOperator:
                 Eat(1);
-                factor = 0 + (double)ParseFactor();
+                factor = 0 + (double)ParseTerm();
                 return factor;
 
             case TokenKind.MinusOperator:
                 Eat(1);
-                factor = 0 - (double)ParseFactor();
+                factor = 0 - (double)ParseTerm();
                 return factor;
 
             // </Create variables
@@ -190,36 +186,36 @@ public class Parser
         }
     }
 
-    private object _ParseTerm()
+    private object _ParseFactor()
     {
 
-        object term = ParseFactor();
+        object factor = ParseTerm();
 
-        if (term is string)
-            return term;
+        if (factor is string) 
+            return factor;
 
-        else if (term is null)
-            return term!;
+        else if (factor is null)
+            return factor!;
 
-        else if (term is bool)
-            return term;
+        else if (factor is bool)
+            return factor;
 
         else
         {
-            double _term = (double)term;
+            double _factor = (double)factor;
             while (currentToken.Kind == TokenKind.Power)
             {
                 Token operatorToken = currentToken;
                 Eat(1);
-                object nextToken = _ParseTerm();
+                object nextToken = _ParseFactor();
 
                 if (currentToken.Kind == TokenKind.LeftParenthesis && nextToken is double)
                 {
-                    _term = Math.Pow((double)_term, (double)nextToken);
+                    _factor = Math.Pow((double)_factor, (double)nextToken);
                 }
                 else if (currentToken.Kind != TokenKind.LeftParenthesis && nextToken is double)
                 {
-                    _term = Math.Pow((double)_term, (double)nextToken);
+                    _factor = Math.Pow((double)_factor, (double)nextToken);
                 }
                 else
                 {
@@ -227,40 +223,40 @@ public class Parser
                     throw new InvalidOperationException();
                 }
             }
-            return _term;
+            return _factor;
         }
     }
 
-    private object ParseTerm()
+    private object ParseFactor()
     {
-        object term = _ParseTerm();
-        if (term is string)
-            return term;
+        object factor = _ParseFactor();
+        if (factor is string)
+            return factor;
 
-        else if (term is null)
-            return term!;
+        else if (factor is null)
+            return factor!;
 
-        else if (term is bool)
-            return term;
+        else if (factor is bool)
+            return factor;
 
         else
         {
-            double _term = (double)term;
+            double _factor = (double)factor;
             while (currentToken.Kind == TokenKind.MultOperator || currentToken.Kind == TokenKind.DivideOperator || currentToken.Kind == TokenKind.Modulus)
             {
                 Token operatorToken = currentToken;
                 Eat(1);
 
-                object nextToken = ParseTerm();
+                object nextToken = ParseFactor();
 
                 if (operatorToken.Kind == TokenKind.MultOperator && nextToken is double)
-                    _term *= (double)nextToken;
+                    _factor *= (double)nextToken;
 
                 else if (operatorToken.Kind == TokenKind.DivideOperator && nextToken is double)
-                    _term /= (double)nextToken;
+                    _factor /= (double)nextToken;
 
                 else if (operatorToken.Kind == TokenKind.Modulus && nextToken is double)
-                    _term %= (double)nextToken;
+                    _factor %= (double)nextToken;
 
                 else
                 {
@@ -268,13 +264,13 @@ public class Parser
                     throw new Exception();
                 }
             }
-            return _term;
+            return _factor;
         }
     }
 
     private object _ParseExpression()
     {
-        object expressionResult = ParseTerm();
+        object expressionResult = ParseFactor();
 
         if (expressionResult is string)
             return expressionResult;
@@ -592,13 +588,13 @@ public class Parser
             throw new Exception();
         }
 
-        Variable variable = new Variable(TokenKind.Identifier, varName, ParseExpression());
+        object varValue = ParseExpression();
 
-        if (!variables.ContainsKey(variable.GetName()))
-            variables.Add(variable.GetName(), variable.Value);
+        if (!variables.ContainsKey(varName))
+            variables.Add(varName, varValue);
 
         else
-            variables[variable.GetName()] = variable.Value;
+            variables[varName] = varValue;
 
         if (currentToken.Kind == TokenKind.Comma)
             CreateVar();

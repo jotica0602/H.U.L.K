@@ -13,14 +13,13 @@ public class Lexer
     #region Test Section
     static void Main(string[] args)
     {
-        Auto();
-        // Manual();
+        // Auto();/
+        Manual();
     }
 
     #endregion
 
     #region  Lexer Object
-
 
     public readonly string sourceCode;
     private int currentPosition;
@@ -53,7 +52,7 @@ public class Lexer
                 currentPosition++;
                 continue;
             }
-            
+
             // Add identifier
             else if (IsLetter(currentChar))
                 tokens.Add(IdKind());
@@ -82,7 +81,7 @@ public class Lexer
                 currentPosition++;
             }
         }
-        
+
         if (tokens.Last().GetName() != ";")
         {
             Diagnostics.Errors.Add("!syntax error: expression must end with \";\".");
@@ -99,14 +98,14 @@ public class Lexer
     {
 
         string number = "";
-        
+
         while ((currentPosition < sourceCode.Length) && (char.IsDigit(sourceCode[currentPosition]) || sourceCode[currentPosition] == '.'))
         {
             number += sourceCode[currentPosition];
 
-            if(IsLetter(LookAhead(1)))
+            if (IsLetter(LookAhead(1)))
             {
-                Diagnostics.Errors.Add($"!lexical error: {number+LookAhead(1)} is not a valid token.");
+                Diagnostics.Errors.Add($"!lexical error: {number + LookAhead(1)} is not a valid token.");
                 throw new Exception();
             }
 
@@ -148,7 +147,7 @@ public class Lexer
         }
 
         Eat(1);
-        return new Data(TokenKind.String,str);
+        return new Data(TokenKind.String, str);
     }
 
     private Token Operator()
@@ -304,13 +303,13 @@ public class Lexer
         switch (idkind)
         {
             case "let":
-                return new PureToken(TokenKind.letKeyWord);
+                return new Keyword(TokenKind.letKeyWord);
 
             case "in":
-                return new PureToken(TokenKind.inKeyWord);
+                return new Keyword(TokenKind.inKeyWord);
 
             case "function":
-                return new PureToken(TokenKind.functionKeyWord);
+                return new Keyword(TokenKind.functionKeyWord);
 
             case "true":
                 return new Data(TokenKind.trueKeyWord, true);
@@ -319,10 +318,10 @@ public class Lexer
                 return new Data(TokenKind.falseKeyWord, false);
 
             case "if":
-                return new PureToken(TokenKind.ifKeyWord);
+                return new Keyword(TokenKind.ifKeyWord);
 
             default:
-                return new PureToken(TokenKind.elseKeyWord);
+                return new Keyword(TokenKind.elseKeyWord);
 
         }
     }
@@ -337,7 +336,7 @@ public class Lexer
     }
     private char LookAhead(int positions)
     {
-        if( (currentPosition + positions) >= sourceCode.Length )
+        if ((currentPosition + positions) >= sourceCode.Length)
             return ' ';
         return sourceCode[currentPosition + positions];
     }
@@ -397,7 +396,7 @@ public class Lexer
             try
             {
                 // Automatic tests
-                string[] strings = { "function fib(n) => if (n>=1) fib(n-1) + fib(n-2) else 1;","fib(5);"};
+                string[] strings = { "function fib(n) => if (n>=1) fib(n-1) + fib(n-2) else 1;", "fib(5);" };
                 var Lexer = new Lexer(strings[i]);
 
                 if (Lexer.sourceCode == string.Empty)
@@ -412,7 +411,7 @@ public class Lexer
 
                 parser.Parse();
                 parser.ClearVariables();
-                
+
                 i++;
                 if (i >= strings.Length)
                     break;

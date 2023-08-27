@@ -23,9 +23,9 @@ public abstract class Token
     public override string ToString() => $"{Kind}";
 }
 
-public class PureToken : Token
+public class Keyword : Token
 {
-    public PureToken(TokenKind kind) : base(kind)
+    public Keyword(TokenKind kind) : base(kind)
     {
         Kind = kind;
     }
@@ -77,20 +77,4 @@ public class Data : Token
     public override void SetValue(object value) => Value = value;
 
     public override string ToString() => $"{base.Kind}: {Value}";
-}
-
-public class Variable : CommonToken
-{
-    public object Value { get; set; }
-
-    public Variable(TokenKind kind, string representation, object value) : base(kind, representation)
-    {
-        Value = value;
-    }
-
-    public override object GetValue() => Value;
-
-    public override void SetValue(object value) => Value = value;
-
-    public override string ToString() => $"{base.Kind} {base.Representation}={Value}";
 }
