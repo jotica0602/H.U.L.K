@@ -13,7 +13,7 @@ public class Lexer
     #region Test Section
     static void Main(string[] args)
     {
-        // Auto();/
+        // Auto();
         Manual();
     }
 
@@ -396,7 +396,7 @@ public class Lexer
             try
             {
                 // Automatic tests
-                string[] strings = { "function fib(n) => if (n>=1) fib(n-1) + fib(n-2) else 1;", "fib(5);" };
+                string[] strings = { ";" };
                 var Lexer = new Lexer(strings[i]);
 
                 if (Lexer.sourceCode == string.Empty)

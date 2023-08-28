@@ -1,4 +1,5 @@
 // After we made our list of Tokens, we need to find the sense of the expression, if it exists.
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -34,7 +35,7 @@ public class Parser
     // </Eat function: now we can move through our tokens list
     public void Eat(int positions)
     {
-        currentTokenIndex += positions;        
+        currentTokenIndex += positions;
         if (currentTokenIndex < tokens.Count())
             currentToken = tokens[currentTokenIndex];
         else
@@ -53,15 +54,15 @@ public class Parser
         {
             // </Get number value
             case TokenKind.Number:
-                object factor = currentToken.GetValue();
+                object term = currentToken.GetValue();
                 Eat(1);
-                return (double)factor;
+                return (double)term;
 
             // </Get string value
             case TokenKind.String:
-                factor = currentToken.GetValue();
+                term = currentToken.GetValue();
                 Eat(1);
-                return (string)factor;
+                return (string)term;
 
             // </Get false
             case TokenKind.falseKeyWord:
@@ -75,25 +76,26 @@ public class Parser
 
             // </Get variable value or evaluate function
             case TokenKind.Identifier:
+                string identifierName = currentToken.GetName();
 
-                if (variables.ContainsKey(currentToken.GetName()))
+                if (variables.ContainsKey(identifierName))
                 {
-                    factor = variables[currentToken.GetName()];
+                    term = variables[identifierName];
                     Eat(1);
-                    return factor;
+                    return term;
                 }
 
-                else if (Global.functions.ContainsKey(currentToken.GetName()))
+                else if (Global.functions.ContainsKey(identifierName))
                 {
-                    stack.Add(Global.functions[currentToken.GetName()]);
-                    factor = EvaluateFunction(stack.Last());
+                    stack.Add(Global.functions[identifierName]);
+                    term = EvaluateFunction(stack.Last());
                     Eat(1);
-                    return factor;
+                    return term;
                 }
 
                 else
                 {
-                    Diagnostics.Errors.Add($"!semantic error: function or variable \"{tokens[currentTokenIndex].GetName()}\" does not exists.");
+                    Diagnostics.Errors.Add($"!semantic error: function or variable \"{identifierName}\" does not exists.");
                     throw new Exception();
                 }
 
@@ -115,8 +117,8 @@ public class Parser
                     // Execute if instruction
                     object ifInstruction = ParseExpression();
                     currentTokenIndex = tokens.Count() - 1;
+                    Eat(1);
                     return ifInstruction;
-
                 }
 
                 // </In case if expression returns false
@@ -129,6 +131,7 @@ public class Parser
                     // Execute else instruction
                     object elseInstruction = ParseExpression();
                     currentTokenIndex = tokens.Count() - 1;
+                    Eat(1);
                     return elseInstruction;
                 }
 
@@ -147,51 +150,64 @@ public class Parser
             // </A left parenthesis means we stepped on a new inner expression
             case TokenKind.LeftParenthesis:
                 Eat(1);
-                factor = ParseExpression();
+                term = ParseExpression();
+
                 if (currentToken.Kind != TokenKind.RightParenthesis)
                 {
                     Diagnostics.Errors.Add($"!syntax error: ) is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
                     throw new Exception();
                 }
+
                 Eat(1);
-                return factor;
+                return term;
 
             case TokenKind.PlusOperator:
                 Eat(1);
-                factor = 0 + (double)ParseTerm();
-                return factor;
+                term = 0 + (double)ParseTerm();
+                return term;
 
             case TokenKind.MinusOperator:
                 Eat(1);
-                factor = 0 - (double)ParseTerm();
-                return factor;
+                term = 0 - (double)ParseTerm();
+                return term;
+
+            case TokenKind.Not:
+                Eat(1);
+                term = !(bool)ParseTerm();
+                return term;
 
             // </Create variables
             case TokenKind.letKeyWord:
                 CreateVar();
-                factor = ParseExpression();
-                return factor;
+                term = ParseExpression();
+                return term;
 
             // </In keyword means we stepped on a new expression 
             case TokenKind.inKeyWord:
                 Eat(1);
-                factor = ParseExpression();
-                return factor;
-
+                term = ParseExpression();
+                return term;
 
             default:
-                Diagnostics.Errors.Add($"!syntax error: factor or expression is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
-                throw new Exception();
-
+                if (currentTokenIndex == 0)
+                {
+                    Diagnostics.Errors.Add($"!syntax error: factor or expression is missing before \"{tokens[currentTokenIndex]}\" at index: {currentTokenIndex}.");
+                    throw new Exception();
+                }
+                else
+                {
+                    Diagnostics.Errors.Add($"!syntax error: factor or expression is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
+                    throw new Exception();
+                }
         }
     }
 
-    private object _ParseFactor()
+    private object ParsePower()
     {
 
         object factor = ParseTerm();
 
-        if (factor is string) 
+        if (factor is string)
             return factor;
 
         else if (factor is null)
@@ -207,7 +223,7 @@ public class Parser
             {
                 Token operatorToken = currentToken;
                 Eat(1);
-                object nextToken = _ParseFactor();
+                object nextToken = ParsePower();
 
                 if (currentToken.Kind == TokenKind.LeftParenthesis && nextToken is double)
                 {
@@ -219,7 +235,7 @@ public class Parser
                 }
                 else
                 {
-                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between string and number index: {currentTokenIndex - 1}.");
+                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between strings and numbers.");
                     throw new InvalidOperationException();
                 }
             }
@@ -229,7 +245,7 @@ public class Parser
 
     private object ParseFactor()
     {
-        object factor = _ParseFactor();
+        object factor = ParsePower();
         if (factor is string)
             return factor;
 
@@ -260,7 +276,7 @@ public class Parser
 
                 else
                 {
-                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between string and number index: {currentTokenIndex - 1}.");
+                    Diagnostics.Errors.Add($"!semantic error: \"{operatorToken}\" cannot be used between strings and numbers.");
                     throw new Exception();
                 }
             }
@@ -268,7 +284,7 @@ public class Parser
         }
     }
 
-    private object _ParseExpression()
+    private object ParseSum()
     {
         object expressionResult = ParseFactor();
 
@@ -289,7 +305,7 @@ public class Parser
                 Token operatorToken = currentToken;
                 Eat(1);
 
-                object nextToken = _ParseExpression();
+                object nextToken = ParseSum();
 
                 if (operatorToken.Kind == TokenKind.PlusOperator && nextToken is double)
                     _expressionResult += (double)nextToken;
@@ -308,6 +324,107 @@ public class Parser
         }
     }
 
+    private object ParseComparation()
+    {
+        object leftExpression = ParseSum();
+
+        if (leftExpression is string)
+            return leftExpression;
+
+        else if (leftExpression is null)
+            return leftExpression!;
+
+        else if (leftExpression is bool)
+            return leftExpression;
+
+        else
+        {
+            bool evaluation;
+
+            if (leftExpression is bool)
+                return (bool)leftExpression;
+
+            TokenKind _operator = currentToken.Kind;
+
+
+            if (!IsBooleanOperator(_operator))
+            {
+                return leftExpression;
+            }
+
+            else
+            {
+                Eat(1);
+                object rightExpression = ParseSum();
+
+
+                switch (_operator)
+                {
+                    case TokenKind.LessThan:
+                        evaluation = (double)leftExpression < (double)rightExpression;
+                        break;
+
+                    case TokenKind.LessOrEquals:
+                        evaluation = (double)leftExpression <= (double)rightExpression;
+                        break;
+
+                    case TokenKind.GreatherThan:
+                        evaluation = (double)leftExpression > (double)rightExpression;
+                        break;
+
+                    case TokenKind.GreatherOrEquals:
+                        evaluation = (double)leftExpression >= (double)rightExpression;
+                        break;
+
+                    case TokenKind.EqualsTo:
+                        evaluation = leftExpression.ToString() == rightExpression.ToString();
+                        break;
+
+                    case TokenKind.NotEquals:
+                        evaluation = leftExpression.ToString() != rightExpression.ToString();
+                        break;
+
+                    default:
+                        Diagnostics.Errors.Add($"!syntax error: invalid conditional expression after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
+                        throw new Exception();
+                }
+
+                return evaluation;
+            }
+        }
+    }
+
+    private object ParseAndOr()
+    {
+        object leftExpression = ParseComparation();
+        if (!(leftExpression is bool))
+            return leftExpression;
+
+        bool _leftExpression = (bool)leftExpression;
+
+        if (leftExpression is null)
+            return leftExpression!;
+
+        while (currentToken.Kind == TokenKind.Or || currentToken.Kind == TokenKind.And)
+        {
+            TokenKind _operator = currentToken.Kind;
+            Eat(1);
+
+            bool rightExpression = (bool)ParseComparation();
+
+            if (_operator == TokenKind.Or)
+            {
+                _leftExpression |= rightExpression;
+            }
+            if (_operator == TokenKind.And)
+            {
+                _leftExpression &= rightExpression;
+            }
+        }
+        return _leftExpression;
+    }
+
+
     public object ParseExpression()
     {
         if (currentToken.Kind == TokenKind.functionKeyWord)
@@ -316,7 +433,7 @@ public class Parser
             return null!;
         }
 
-        object expressionResult = _ParseExpression();
+        object expressionResult = ParseAndOr();
 
         if (expressionResult is string && (currentToken.Kind == TokenKind.PlusOperator || currentToken.Kind == TokenKind.MinusOperator || currentToken.Kind == TokenKind.MultOperator || currentToken.Kind == TokenKind.DivideOperator || currentToken.Kind == TokenKind.Power))
         {
@@ -335,103 +452,6 @@ public class Parser
     }
 
     #region Boolean Expressions Evaluator
-    bool EvaluateInnerExpression()
-    {
-        bool evaluation;
-        if (currentToken.Kind == TokenKind.LeftParenthesis)
-        {
-            Eat(1);
-            object expression = EvaluateBooleanExpression();
-
-            if (currentToken.Kind != TokenKind.RightParenthesis)
-            {
-                Diagnostics.Errors.Add($"!syntax error: \"Right Parenthesis\" is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
-                throw new Exception();
-            }
-
-            Eat(1);
-            return (bool)expression;
-        }
-
-        else if (currentToken.Kind == TokenKind.Not)
-        {
-            Eat(1);
-            object expression = !EvaluateInnerExpression();
-            return (bool)expression;
-        }
-
-        else
-        {
-            object leftExpression = ParseExpression();
-
-            if (leftExpression is bool)
-            {
-                return (bool)leftExpression;
-            }
-
-            TokenKind booleanOperator = currentToken.Kind;
-            Eat(1);
-
-            object rightExpression = ParseExpression();
-
-            if (rightExpression is bool)
-                Eat(1);
-
-            switch (booleanOperator)
-            {
-                case TokenKind.LessThan:
-                    evaluation = (double)leftExpression < (double)rightExpression;
-                    break;
-
-                case TokenKind.LessOrEquals:
-                    evaluation = (double)leftExpression <= (double)rightExpression;
-                    break;
-
-                case TokenKind.GreatherThan:
-                    evaluation = (double)leftExpression > (double)rightExpression;
-                    break;
-
-                case TokenKind.GreatherOrEquals:
-                    evaluation = (double)leftExpression >= (double)rightExpression;
-                    break;
-
-                case TokenKind.EqualsTo:
-                    evaluation = leftExpression.ToString() == rightExpression.ToString();
-                    break;
-
-                case TokenKind.NotEquals:
-                    evaluation = leftExpression.ToString() != rightExpression.ToString();
-                    break;
-
-                default:
-                    Diagnostics.Errors.Add($"!syntax error: invalid conditional expression after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
-                    throw new Exception();
-            }
-            return evaluation;
-        }
-    }
-
-    bool EvaluateBooleanExpression()
-    {
-        bool leftExpression = EvaluateInnerExpression();
-        while (currentToken.Kind == TokenKind.Or || currentToken.Kind == TokenKind.And)
-        {
-            TokenKind _operator = currentToken.Kind;
-            Eat(1);
-
-            bool rightExpression = EvaluateInnerExpression();
-
-            if (_operator == TokenKind.Or)
-            {
-                leftExpression |= rightExpression;
-            }
-            if (_operator == TokenKind.And)
-            {
-                leftExpression &= rightExpression;
-            }
-        }
-        return leftExpression;
-    }
 
     bool EvaluateIfExpression()
     {
@@ -443,7 +463,7 @@ public class Parser
 
         Eat(1);
 
-        bool evaluation = EvaluateBooleanExpression();
+        bool evaluation = (bool)ParseAndOr();
 
         if (currentToken.Kind == TokenKind.RightParenthesis)
         {
@@ -559,6 +579,22 @@ public class Parser
     }
 
     #endregion
+
+    bool IsBooleanOperator(TokenKind _operator)
+    {
+        List<TokenKind> operators = new List<TokenKind>()
+        {
+            TokenKind.LessThan,
+            TokenKind.LessOrEquals,
+            TokenKind.GreatherThan,
+            TokenKind.GreatherOrEquals,
+            TokenKind.EqualsTo,
+            TokenKind.NotEquals
+        };
+
+        return operators.Contains(_operator);
+
+    }
 
     #region Variables and Functions Creation
 

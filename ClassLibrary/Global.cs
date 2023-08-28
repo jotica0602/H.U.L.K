@@ -5,6 +5,5 @@ public class Global
     //  TO DO:
     // -BUILTIN FUNCTIONS
     // -ADD FUNCTION OVERLOAD ARGS ERROR
-    // -USE OF NOT OPERATOR ON BOOL DATA TYPES
     
 }
