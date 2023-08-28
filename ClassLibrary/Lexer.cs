@@ -13,7 +13,7 @@ public class Lexer
     #region Test Section
     static void Main(string[] args)
     {
-        // Auto();
+        Auto();
         Manual();
     }
 
@@ -389,14 +389,13 @@ public class Lexer
 
     public static void Auto()
     {
-        Console.Clear();
         int i = 0;
         while (true)
         {
             try
             {
                 // Automatic tests
-                string[] strings = { ";" };
+                string[] strings = { "f(3" };
                 var Lexer = new Lexer(strings[i]);
 
                 if (Lexer.sourceCode == string.Empty)

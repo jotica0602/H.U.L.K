@@ -30,7 +30,7 @@ public class Keyword : Token
         Kind = kind;
     }
 
-    public override string GetName() => throw new NotImplementedException();
+    public override string GetName() => Kind.ToString();
 
     public override object GetValue() => throw new NotImplementedException();
 
@@ -68,7 +68,7 @@ public class Data : Token
         Value = value;
     }
 
-    public override string GetName() => throw new NotImplementedException();
+    public override string GetName() => Value.ToString()!;
 
     public override void SetName(string name) => throw new NotImplementedException();
 
