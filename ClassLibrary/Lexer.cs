@@ -13,7 +13,7 @@ public class Lexer
     #region Test Section
     static void Main(string[] args)
     {
-        Auto();
+        // Auto();
         Manual();
     }
 

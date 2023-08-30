@@ -1,5 +1,6 @@
 // After we made our list of Tokens, we need to find the sense of the expression, if it exists.
 using System.Linq.Expressions;
+using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -7,7 +8,7 @@ public class Parser
 {
     #region Parser Object
     // </Tokens List to Parse
-    private List<Token> tokens;
+    private readonly List<Token> tokens;
     // </VarList to keep record of created Variables
     private Dictionary<string, object> variables;
     // </Call Stack
@@ -19,7 +20,7 @@ public class Parser
     // </Current Token
     private Token currentToken;
     // </if-else tuples
-    private List<(int, int)> ifElseMatches = new List<(int, int)>();
+    private readonly List<(int, int)> ifElseMatches = new List<(int, int)>();
 
     // </Constructor
     public Parser(List<Token> tokens, Dictionary<string, object> variables, List<Funct> stack)
@@ -32,7 +33,7 @@ public class Parser
     }
 
 
-    // </Eat function: now we can move through our tokens list
+    // </Eat Token: now we can move through our tokens list
     public void Eat(int positions)
     {
         currentTokenIndex += positions;
@@ -88,7 +89,7 @@ public class Parser
                 else if (Global.functions.ContainsKey(identifierName))
                 {
                     stack.Add(Global.functions[identifierName]);
-                    term = EvaluateFunction(stack.Last());
+                    term = EvaluateFunction(identifierName, stack.Last());
                     Eat(1);
                     return term;
                 }
@@ -324,7 +325,7 @@ public class Parser
         }
     }
 
-    private object ParseComparation()
+    private object ParseComparison()
     {
         object leftExpression = ParseSum();
 
@@ -396,7 +397,7 @@ public class Parser
 
     private object ParseAndOr()
     {
-        object leftExpression = ParseComparation();
+        object leftExpression = ParseComparison();
         if (!(leftExpression is bool))
             return leftExpression;
 
@@ -410,7 +411,7 @@ public class Parser
             TokenKind _operator = currentToken.Kind;
             Eat(1);
 
-            bool rightExpression = (bool)ParseComparation();
+            bool rightExpression = (bool)ParseComparison();
 
             if (_operator == TokenKind.Or)
             {
@@ -536,6 +537,7 @@ public class Parser
             if (ifIndex == match.Item1)
             {
                 currentTokenIndex = match.Item2;
+                break;
             }
         }
     }
@@ -723,7 +725,7 @@ public class Parser
     #endregion
 
     #region Function Evaluation 
-    private object EvaluateFunction(Funct function)
+    private object EvaluateFunction(string functionName, Funct function)
     {
         Eat(1);
 
@@ -739,8 +741,11 @@ public class Parser
         int index = 0;
         while (currentToken.Kind != TokenKind.RightParenthesis)
         {
-            if (index == function.Args.Count)
-                break;
+            if (index >= function.Args.Count)
+            {
+                Diagnostics.Errors.Add($"!semantic error: function: \"{functionName}\" recieves {function.Args.Count} argument(s), but {index+1} were given. ");
+                throw new Exception();
+            }
 
             object seconditem = ParseExpression();
             function.Args[index] = (function.Args[index].Item1, seconditem);
@@ -749,8 +754,14 @@ public class Parser
 
             if (currentToken.Kind == TokenKind.Comma)
                 Eat(1);
-
         }
+
+        if (index < function.Args.Count)
+        {
+            Diagnostics.Errors.Add($"!semantic error: function: \"{functionName}\" recieves {function.Args.Count} argument(s), but {index} were given. ");
+            throw new Exception();
+        }
+
 
         // </Execute function body
         object evaluation = function.Execute();
