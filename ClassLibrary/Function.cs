@@ -1,31 +1,34 @@
-public class Funct
+namespace ClassLibrary
 {
-    public List<(string, object)> Args { get; set; }
-
-    public List<Token> Body { get; set; }
-
-    public Funct(List<(string, object)> args, List<Token> body)
+    public class Funct
     {
-        Args = args;
-        Body = body;
-    }
+        public List<(string, object)> Args { get; set; }
 
-    public object Execute()
-    {
-        Dictionary<string, object> variables = new Dictionary<string, object>();
+        public List<Token> Body { get; set; }
 
-        // Get function variables 
-        foreach (var arg in Args)
+        public Funct(List<(string, object)> args, List<Token> body)
         {
-            variables.Add(arg.Item1, arg.Item2);
+            Args = args;
+            Body = body;
         }
-        
-        Parser parser = new Parser(Body, new Dictionary<string, object>(variables), new List<Funct>());
-        return parser.ParseExpression();
-    }
 
-    public override string ToString()
-    {
-        return $"Arguments:{String.Join(" ", Args)} | Instructions: {String.Join(" ", Body)}";
+        public object Execute()
+        {
+            Dictionary<string, object> variables = new Dictionary<string, object>();
+
+            // Get function variables 
+            foreach (var arg in Args)
+            {
+                variables.Add(arg.Item1, arg.Item2);
+            }
+
+            Parser parser = new Parser(Body, new Dictionary<string, object>(variables));
+            return parser.ParseExpression();
+        }
+
+        public override string ToString()
+        {
+            return $"Arguments:{string.Join(" ", Args)} | Instructions: {string.Join(" ", Body)}";
+        }
     }
 }

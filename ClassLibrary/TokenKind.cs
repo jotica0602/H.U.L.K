@@ -1,39 +1,101 @@
 public enum TokenKind
 {
-    // <summary>
-    // There are 2 kind of identifiers:
-    // Variables and Functions
-    // </summary>
-
-    // Identifiers
     Identifier,
+
     // KeyWords
-    letKeyWord, inKeyWord, functionKeyWord, ifKeyWord, elseKeyWord,
+    letKeyWord,
 
-    // <summary>
-    // There are 3 data types in H.U.L.K:
-    //  Strings, Numbers and Bool
-    // </summary>
+    inKeyWord,
 
-    String, Number, trueKeyWord, falseKeyWord,
+    functionKeyWord,
 
-    // <summary>
-    // Operators:
-    // There are 3 kind of operators in H.U.L.K:
-    // Arithmetic Operators, String Operators and Bool Operators 
-    // </summary>
+    ifKeyWord, 
+    
+    elseKeyWord, 
+    
+    PI, 
+    
+    E,
+
+    e,
+
+    // Data Types
+    String,
+
+    Number,
+
+    trueKeyWord,
+
+    falseKeyWord,
 
     // Arithmetic Operators
-    PlusOperator, MinusOperator, MultOperator, DivideOperator, Power, Modulus, Equals,
-    // String Operator
+    PlusOperator,
+
+    MinusOperator,
+
+    MultOperator,
+
+    DivideOperator,
+
+    Power,
+
+    Modulus,
+
+    // Boolean Operators
+    Equals,
+
     Concat,
-    // Bool Operators
-    And, Or, EqualsTo, LessOrEquals, LessThan, GreatherOrEquals, GreatherThan, NotEquals, Not,
+
+    And,
+
+    Or,
+
+    EqualsTo,
+
+    LessOrEquals,
+
+    LessThan,
+
+    GreatherOrEquals,
+
+    GreatherThan,
+
+    NotEquals,
+
+    Not,
+
     // Punctuators
-    LeftParenthesis, RightParenthesis, Comma, Colon, Semicolon, FullStop, Quote,
-    // Function declaration
+    LeftParenthesis,
+
+    RightParenthesis,
+
+    Comma,
+
+    Colon,
+
+    Semicolon,
+
+    FullStop,
+
+    Quote,
+
     Arrow,
 
+    // Functions
+
+    sin,
+
+    cos,
+
+    log,
+
+    rand,
+   
+    print,
+    
+    // Utility 
     EndOfFile,
-    Unknown
+
+    Unknown,
+
 }
