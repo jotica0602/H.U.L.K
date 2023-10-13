@@ -12,8 +12,10 @@ namespace ClassLibrary
 
         // </Tokens List to Parse
         private readonly List<Token> tokens;
+
         // </VarList to keep record of created Variables
-        private Dictionary<string, object> variables;
+        private List<Dictionary<string, object>> Scope;
+        private int scopeIndex = -1;
 
         // </Current Index
         private int currentTokenIndex;
@@ -22,10 +24,10 @@ namespace ClassLibrary
         // </if-else tuples
         private List<(int, int)> ifElseMatches = new List<(int, int)>();
         // </Constructor
-        public Parser(List<Token> tokens, Dictionary<string, object> variables)
+        public Parser(List<Token> tokens, List<Dictionary<string, object>> scope)
         {
             this.tokens = tokens;
-            this.variables = variables;
+            this.Scope = scope;
             currentTokenIndex = 0;
             currentToken = tokens[currentTokenIndex];
             CheckBalance();
@@ -36,14 +38,14 @@ namespace ClassLibrary
         {
             if (tokens.Count() <= 0)
             {
-                variables.Clear();
+                Scope.Clear();
                 Console.WriteLine("there is nothing to parse.");
                 return;
             }
 
             if (tokens.Count() == 1)
             {
-                variables.Clear();
+                Scope.Clear();
                 Console.WriteLine($"!syntax error: invalid expression");
                 return;
             }
@@ -52,7 +54,7 @@ namespace ClassLibrary
 
             if (currentToken.Kind != TokenKind.Semicolon && currentToken.Kind != TokenKind.EndOfFile)
             {
-                variables.Clear();
+                Scope.Clear();
                 Diagnostics.Errors.Add($"!syntax error: operator or expression is missing after \"{tokens[currentTokenIndex - 1]}\" at index: {currentTokenIndex - 1}.");
                 throw new Exception();
             }
@@ -352,10 +354,26 @@ namespace ClassLibrary
                 case TokenKind.Identifier:
                     string identifierName = currentToken.GetName();
 
-                    if (variables.ContainsKey(identifierName))
+                    if (tokens[currentTokenIndex + 1].Kind != TokenKind.LeftParenthesis)
                     {
-                        term = variables[identifierName];
-                        Consume(1);
+                        term = null!;
+
+                        for (int i = Scope.Count - 1; scopeIndex >= -1; i--)
+                        {
+                            if (Scope[i].ContainsKey(identifierName))
+                            {
+                                term = Scope[i][identifierName];
+                                Consume(1);
+                                break;
+                            }
+                        }
+
+                        if (term is null)
+                        {
+                            Diagnostics.Errors.Add($"!semantic error: variable \"{identifierName}\" does not exists.");
+                            throw new Exception();
+                        }
+
                         return term;
                     }
 
@@ -369,7 +387,7 @@ namespace ClassLibrary
 
                     else
                     {
-                        Diagnostics.Errors.Add($"!semantic error: function or variable \"{identifierName}\" does not exists.");
+                        Diagnostics.Errors.Add($"!semantic error: function \"{identifierName}\" does not exists.");
                         throw new Exception();
                     }
 
@@ -440,6 +458,9 @@ namespace ClassLibrary
 
                 // </Create variables
                 case TokenKind.letKeyWord:
+                    Dictionary<string, object> enviroment = new Dictionary<string, object>();
+                    Scope.Add(enviroment);
+                    scopeIndex++;
                     CreateVar();
                     term = ParseExpression();
                     // variables.Clear();
@@ -449,6 +470,8 @@ namespace ClassLibrary
                 case TokenKind.inKeyWord:
                     Consume(1);
                     term = ParseExpression();
+                    Scope.Remove(Scope[scopeIndex]);
+                    scopeIndex--;
                     return term;
 
                 case TokenKind.E:
@@ -693,6 +716,7 @@ namespace ClassLibrary
 
         private void CreateVar()
         {
+
             Consume(1);
             if (currentToken.Kind != TokenKind.Identifier)
             {
@@ -718,14 +742,14 @@ namespace ClassLibrary
 
             object varValue = ParseExpression();
 
-            if (!variables.ContainsKey(varName))
+            if (!Scope[scopeIndex].ContainsKey(varName))
             {
-                variables.Add(varName, varValue);
+                Scope[scopeIndex].Add(varName, varValue);
             }
 
             else
             {
-                variables[varName] = varValue;
+                Scope[scopeIndex][varName] = varValue;
             }
 
             if (currentToken.Kind == TokenKind.Comma)
@@ -837,7 +861,7 @@ namespace ClassLibrary
             }
         }
 
-        public void ClearVariables() => variables.Clear();
+        public void ClearVariables() => Scope.Clear();
 
         #region Function Evaluation 
         private object EvaluateFunction(string functionName, Funct function)

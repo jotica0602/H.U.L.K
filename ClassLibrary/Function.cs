@@ -14,6 +14,7 @@ namespace ClassLibrary
 
         public object Execute()
         {
+            List<Dictionary<string,object>> functionScope = new List<Dictionary<string, object>>();
             Dictionary<string, object> variables = new Dictionary<string, object>();
 
             // Get function variables 
@@ -22,7 +23,9 @@ namespace ClassLibrary
                 variables.Add(arg.Item1, arg.Item2);
             }
 
-            Parser parser = new Parser(Body, new Dictionary<string, object>(variables));
+            functionScope.Add(variables);
+
+            Parser parser = new Parser(Body,functionScope);
             return parser.ParseExpression();
         }
 

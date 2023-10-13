@@ -15,7 +15,7 @@ namespace Interpreter
                     try
                     {
                         // Automatic tests
-                        string[] strings = { "print(let a = 5 in (let a = 3 in a) + a);" };
+                        string[] strings = { "function fib(n) => if(n>=1) fib(n-1) + fib(n-2) else 1;","print(fib(5));" };
                         var Lexer = new Lexer(strings[i]);
 
                         if (Lexer.sourceCode == string.Empty)
@@ -27,7 +27,7 @@ namespace Interpreter
                         List<Token> tokens = Lexer.Tokenize();
                         // Console.WriteLine(string.Join('\n',tokens));
 
-                        Parser parser = new Parser(tokens, new Dictionary<string, object>());
+                        Parser parser = new Parser(tokens, new List<Dictionary<string,object>>());
                         parser.Parse();
                         parser.ClearVariables();
 
@@ -69,7 +69,7 @@ namespace Interpreter
                         List<Token> tokens = Lexer.Tokenize();
 
 
-                        Parser parser = new Parser(tokens, new Dictionary<string, object>());
+                        Parser parser = new Parser(tokens,new List<Dictionary<string,object>>());
                         parser.Parse();
                         parser.ClearVariables();
 
