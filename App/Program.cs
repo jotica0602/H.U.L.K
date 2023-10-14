@@ -6,7 +6,50 @@ namespace Interpreter
         static void Main()
         {
             Run();
+            // Auto();
         }
+
+        public static void Auto()
+        {
+            int i = 0;
+            while (true)
+            {
+                try
+                {
+                    // Automatic tests
+                    string[] strings = {"function f(n)=>if(n<=1) 1 else n*f(n-1);","f(5);"};
+                    var Lexer = new Lexer(strings[i]);
+
+                    if (Lexer.sourceCode == string.Empty)
+                    {
+                        Diagnostics.Errors.Add("Empty Entry");
+                        throw new Exception();
+                    }
+
+                    List<Token> tokens = Lexer.Tokenize();
+                    // Console.WriteLine(string.Join('\n',tokens));
+
+                    Parser parser = new Parser(tokens, new List<Dictionary<string, object>>());
+                    parser.Parse();
+                    parser.ClearVariables();
+
+                    i++;
+
+                    if (i >= strings.Length)
+                    {
+                        break;
+                    }
+                }
+
+                catch (Exception)
+                {
+                    Console.WriteLine(Diagnostics.Errors[0]);
+                    Diagnostics.Errors.Clear();
+                    break;
+                }
+            }
+        }
+
 
         public static void Run()
         {
@@ -46,7 +89,8 @@ namespace Interpreter
             }
         }
 
-        private static void Welcome(){
+        private static void Welcome()
+        {
             Console.WriteLine(@" 
                                  __  __       __  __       __         __  __                                   
                                 /\ \/\ \     /\ \/\ \     /\ \       /\ \/\ \                                  

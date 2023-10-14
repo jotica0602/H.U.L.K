@@ -50,7 +50,12 @@ namespace ClassLibrary
                 return;
             }
 
-            ParseExpression();
+            object expressionResult = ParseExpression();
+
+            if (expressionResult is null)
+            {
+                return;
+            }
 
             if (currentToken.Kind != TokenKind.Semicolon && currentToken.Kind != TokenKind.EndOfFile)
             {
@@ -59,6 +64,7 @@ namespace ClassLibrary
                 throw new Exception();
             }
 
+            Console.WriteLine(expressionResult);
         }
 
         #endregion
@@ -358,7 +364,7 @@ namespace ClassLibrary
                     {
                         term = null!;
 
-                        for (int i = Scope.Count - 1; scopeIndex >= -1; i--)
+                        for (int i = Scope.Count - 1; i > -1; i--)
                         {
                             if (Scope[i].ContainsKey(identifierName))
                             {
@@ -423,9 +429,9 @@ namespace ClassLibrary
                     }
 
                 // </Expressions cannot start with else keyword
-                case TokenKind.elseKeyWord:
-                    Diagnostics.Errors.Add("!syntax error: if-else instructions are not balanced.");
-                    throw new Exception();
+                // case TokenKind.elseKeyWord:
+                //     Diagnostics.Errors.Add("!syntax error: if-else instructions are not balanced.");
+                //     throw new Exception();
 
                 // </A left parenthesis means we stepped at a new inner expression
                 case TokenKind.LeftParenthesis:
@@ -556,7 +562,7 @@ namespace ClassLibrary
 
                     Consume(1);
 
-                    return null!;
+                    return Math.Log((double)value,(double)base_);
 
                 case TokenKind.print:
                     Consume(1);
@@ -580,7 +586,7 @@ namespace ClassLibrary
 
                     Console.WriteLine(arg);
 
-                    return null!;
+                    return arg;
 
 
                 default:
@@ -916,6 +922,48 @@ namespace ClassLibrary
             return evaluation;
         }
 
+        public object IfElseExpression()
+        {
+            bool condition = EvaluateIfExpression();
+
+            object ifBlockResult = null!;
+            object elseBlockResult = null!;
+
+            if (currentToken.Kind == TokenKind.ifKeyWord)
+            {
+                ifBlockResult = IfElseExpression();
+            }
+            else
+            {
+                ifBlockResult = ParseExpression();
+            }
+
+            if (currentToken.Kind == TokenKind.elseKeyWord)
+            {
+                Consume(1);
+                if (currentToken.Kind == TokenKind.ifKeyWord)
+                {
+                    elseBlockResult = IfElseExpression();
+                }
+                else
+                {
+                    elseBlockResult = ParseExpression();
+                }
+            }
+            else
+            {
+                System.Console.WriteLine("Error, arregla aqui, pon tus cosas de los errores");
+            }
+
+            if (condition)
+            {
+                return ifBlockResult;
+            }
+            else
+            {
+                return elseBlockResult;
+            }
+        }
 
         #endregion
     }
