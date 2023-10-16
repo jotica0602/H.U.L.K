@@ -3,39 +3,37 @@ public enum TokenKind
     Identifier,
 
     // KeyWords
-    letKeyWord,
+    LetKeyWord,
 
-    inKeyWord,
+    InKeyWord,
 
-    functionKeyWord,
+    FunctionKeyWord,
 
-    ifKeyWord, 
+    IfKeyWord, 
     
-    elseKeyWord, 
+    ElseKeyWord, 
     
     PI, 
     
     E,
-
-    e,
 
     // Data Types
     String,
 
     Number,
 
-    trueKeyWord,
+    TrueKeyWord,
 
-    falseKeyWord,
+    FalseKeyWord,
 
     // Arithmetic Operators
-    PlusOperator,
+    Addition,
 
-    MinusOperator,
+    Substraction,
 
-    MultOperator,
+    Multiplication,
 
-    DivideOperator,
+    Division,
 
     Power,
 
