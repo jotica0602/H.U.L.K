@@ -11,7 +11,7 @@ public class Number : AtomExpression
 
     public override void CheckSemantic() { return; }
 
-    public override object? Evaluate() => Value;
+    public override object? Evaluate(Scope scope) => Value;
 
     public override object? GetValue() => Value;
 

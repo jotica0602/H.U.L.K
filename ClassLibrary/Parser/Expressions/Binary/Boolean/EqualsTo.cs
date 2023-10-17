@@ -19,7 +19,7 @@ public class EqualsTo : BinaryExpression
         }
     }
 
-    public override object? Evaluate() => Value = LeftNode!.Evaluate()!.ToString()! == RightNode!.Evaluate()!.ToString()!;
+    public override object? Evaluate(Scope scope) => Value = LeftNode!.Evaluate(scope)!.ToString()! == RightNode!.Evaluate(scope)!.ToString()!;
 
     public override object? GetValue() => Value;
 

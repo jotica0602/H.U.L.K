@@ -18,45 +18,27 @@ class Interpreter
             try
             {
                 // Automatic tests
-                string[] strings = { "2>3;" };
+                // "let a = 42 in (let b = 4 in 4) + a;"
+                // "let a = (let b = 42 in b) in b ;"
+                string[] strings = { "let a = (let b = 2 in b) in a;" };
                 var Lexer = new Lexer(strings[i]);
 
-                if (Lexer.sourceCode == string.Empty)
+                if (strings[i] == string.Empty)
                 {
-                    Diagnostics.Errors.Add("Empty Entry");
+                    Console.WriteLine("Empty Entry");
                     throw new Exception();
                 }
-                
 
                 List<Token> tokens = Lexer.Tokenize();
-                // Console.WriteLine(string.Join('\n',tokens));
-
-                // Parser parser = new Parser(tokens, new List<Dictionary<string, object>>());
-                // parser.Parse();
-                // parser.ClearVariables();
-
-                ASTBuilder AST = new ASTBuilder(tokens);
-                Stopwatch crono = new Stopwatch();
-                crono.Start();
+                Scope scope = new Scope();
+                ASTBuilder AST = new ASTBuilder(tokens, scope);
                 Expression AST_ = AST.Build();
-                Console.WriteLine(AST_.Evaluate());
-                crono.Stop();
-                Console.WriteLine(crono.Elapsed);
-
+                Console.WriteLine(AST_.Evaluate(scope));
                 i++;
-
-                if (i >= strings.Length)
-                {
-                    break;
-                }
+                if (i >= strings.Length) { break; }
             }
 
-            catch (Exception)
-            {
-                // Console.WriteLine(Diagnostics.Errors[0]);
-                Diagnostics.Errors.Clear();
-                break;
-            }
+            catch (Exception) { break; }
         }
     }
 
@@ -64,42 +46,27 @@ class Interpreter
     public static void Run()
     {
 
-        // Console.Clear();
-        // Welcome();
-        Console.WriteLine("Code:");
+        Console.Clear();
+        Welcome();
+        Console.WriteLine("Write your code below :) ");
+
         while (true)
         {
             try
             {
                 Console.Write(">");
                 string sourceCode = Console.ReadLine()!;
+                if (sourceCode == string.Empty)
+                    throw new Exception("Empty Entry");
+
                 var Lexer = new Lexer(sourceCode);
 
-
-                if (Lexer.sourceCode == string.Empty)
-                {
-                    Diagnostics.Errors.Add("Empty Entry");
-                    throw new Exception();
-                }
-
                 List<Token> tokens = Lexer.Tokenize();
-
-
-                // Parser parser = new Parser(tokens, new List<Dictionary<string, object>>());
-                // parser.Parse();
-                // parser.ClearVariables();
-
-                ASTBuilder ast = new ASTBuilder(tokens);
+                Scope scope = new Scope();
+                ASTBuilder ast = new ASTBuilder(tokens, scope);
                 ast.Build();
-
-
             }
-            catch (Exception)
-            {
-                // Console.WriteLine(Diagnostics.Errors[0]);
-                Diagnostics.Errors.Clear();
-                continue;
-            }
+            catch (Exception) { continue; }
         }
     }
 

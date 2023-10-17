@@ -12,14 +12,15 @@ public class And : BinaryExpression
 
     public override void CheckSemantic()
     {
-        if (LeftNode!.Kind != ExpressionKind.Bool || RightNode!.Kind != ExpressionKind.Bool)
+        if ((LeftNode!.Kind != ExpressionKind.Bool && LeftNode!.Kind !=ExpressionKind.Identifier) || 
+            (RightNode!.Kind != ExpressionKind.Bool && RightNode!.Kind !=ExpressionKind.Identifier))
         {
             Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode!.Kind}\"");
             throw new Exception();
         }
     }
 
-    public override object? Evaluate() => Value = (bool)LeftNode!.Evaluate()! && (bool)RightNode!.Evaluate()!;
+    public override object? Evaluate(Scope scope) => Value = (bool)LeftNode!.Evaluate(scope)! && (bool)RightNode!.Evaluate(scope)!;
 
     public override object? GetValue() => Value;
 

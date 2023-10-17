@@ -12,14 +12,15 @@ public class LessOrEquals : BinaryExpression
 
     public override void CheckSemantic()
     {
-        if (LeftNode!.Kind != ExpressionKind.Number || RightNode!.Kind != ExpressionKind.Number)
+        if ((LeftNode!.Kind != ExpressionKind.Number && LeftNode!.Kind != ExpressionKind.Identifier) ||
+            (RightNode!.Kind != ExpressionKind.Number && RightNode!.Kind != ExpressionKind.Identifier))
         {
             Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode!.Kind}\"");
             throw new Exception();
         }
     }
 
-    public override object? Evaluate() => Value = (double)LeftNode!.Evaluate()! <= (double)RightNode!.Evaluate()!;
+    public override object? Evaluate(Scope scope) => Value = (double)LeftNode!.Evaluate(scope)! <= (double)RightNode!.Evaluate(scope)!;
 
     public override object? GetValue() => Value;
 

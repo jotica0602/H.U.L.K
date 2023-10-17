@@ -1,17 +1,17 @@
 namespace ClassLibrary;
-public class String : AtomExpression
+public class Bool : AtomExpression
 {
-    public String(ExpressionKind kind, string value) : base(kind)
+    public Bool(ExpressionKind kind, bool value) : base(kind)
     {
         Value = value;
     }
 
-    public override ExpressionKind Kind { get => ExpressionKind.String; set { } }
+    public override ExpressionKind Kind { get => ExpressionKind.Bool; set { } }
     public override object? Value { get; set; }
 
     public override void CheckSemantic() { return; }
 
-    public override object? Evaluate() => Value;
+    public override object? Evaluate(Scope scope) => Value;
 
     public override object? GetValue() => Value;
 
