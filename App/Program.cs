@@ -13,6 +13,8 @@ class Interpreter
     public static void Auto()
     {
         int i = 0;
+        Scope GlobalScope = new Scope();
+        SetUpGlobalScope(GlobalScope);
         while (true)
         {
             try
@@ -20,7 +22,11 @@ class Interpreter
                 // Automatic tests
                 // "let a = 42 in (let b = 4 in 4) + a;"
                 // "let a = (let b = 42 in b) in b ;"
-                string[] strings = { "let a = (let b = 2 in b) in a;" };
+                // "function f(x) => x;","f(5);"
+                // "function fact(n) => if(n<=1) 1 else n*fact(n-1);","fact(5);"
+                // el problema esta en los argumentos
+
+                string[] strings = { "3==\"pedro\";" };
                 var Lexer = new Lexer(strings[i]);
 
                 if (strings[i] == string.Empty)
@@ -30,23 +36,38 @@ class Interpreter
                 }
 
                 List<Token> tokens = Lexer.Tokenize();
-                Scope scope = new Scope();
-                ASTBuilder AST = new ASTBuilder(tokens, scope);
-                Expression AST_ = AST.Build();
-                Console.WriteLine(AST_.Evaluate(scope));
+
+                ASTBuilder AST = new ASTBuilder(tokens, GlobalScope);
+                Stopwatch crono = new Stopwatch();
+                crono.Start();
+                Expression Tree = AST.Build();
+
+                if (!(Tree is null))
+                {
+                    Tree.Evaluate(GlobalScope);
+                    Console.WriteLine(Tree.GetValue());
+                }
+
+                crono.Stop();
+                Console.WriteLine(crono.Elapsed);
                 i++;
                 if (i >= strings.Length) { break; }
             }
 
-            catch (Exception) { break; }
+            catch (Exception)
+            {
+                Console.WriteLine("Error");
+                break;
+            }
         }
     }
 
 
     public static void Run()
     {
-
-        Console.Clear();
+        Scope GlobalScope = new Scope();
+        SetUpGlobalScope(GlobalScope);
+        // Console.Clear();
         Welcome();
         Console.WriteLine("Write your code below :) ");
 
@@ -62,12 +83,29 @@ class Interpreter
                 var Lexer = new Lexer(sourceCode);
 
                 List<Token> tokens = Lexer.Tokenize();
-                Scope scope = new Scope();
-                ASTBuilder ast = new ASTBuilder(tokens, scope);
-                ast.Build();
+
+                ASTBuilder ast = new ASTBuilder(tokens, GlobalScope);
+                Stopwatch crono = new Stopwatch();
+                crono.Start();
+                Expression Tree = ast.Build();
+                Console.WriteLine(Tree.GetValue());
+                crono.Stop();
+                Console.WriteLine(crono.Elapsed);
             }
-            catch (Exception) { continue; }
+
+            catch (Exception)
+            {
+                Console.WriteLine("error");
+                continue;
+            }
         }
+    }
+
+    private static void SetUpGlobalScope(Scope GlobalScope)
+    {
+        GlobalScope.Vars.Add("E", new Number(ExpressionKind.Number, Math.E, null!));
+        GlobalScope.Vars.Add("Pi", new Number(ExpressionKind.Number, Math.PI, null!));
+        GlobalScope.Vars.Add("Tau", new Number(ExpressionKind.Number, Math.Tau, null!));
     }
 
     private static void Welcome()

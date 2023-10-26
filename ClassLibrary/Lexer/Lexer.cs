@@ -73,14 +73,14 @@ public class Lexer
             else
             {
                 tokens.Add(new CommonToken(TokenKind.Unknown, currentChar.ToString()));
-                Diagnostics.Errors.Add($"!lexical error: \"{tokens.Last()}\" is not a valid token.");
+                Console.WriteLine($"!lexical error: \"{tokens.Last()}\" is not a valid token.");
                 currentPosition++;
             }
         }
 
         if (tokens.Last().GetName() != ";")
         {
-            Diagnostics.Errors.Add("!syntax error: expression must end with \";\".");
+            Console.WriteLine("!syntax error: expression must end with \";\".");
             throw new Exception();
         }
         return tokens;
@@ -101,7 +101,7 @@ public class Lexer
 
             if (IsLetter(LookAhead(1)))
             {
-                Diagnostics.Errors.Add($"!lexical error: {number + LookAhead(1)} is not a valid token.");
+                Console.WriteLine($"!lexical error: {number + LookAhead(1)} is not a valid token.");
                 throw new Exception();
             }
 

@@ -2,5 +2,7 @@ namespace ClassLibrary;
 
 public abstract class AtomExpression : Expression
 {
-    public AtomExpression(ExpressionKind kind) : base(kind) { }
+    public override Scope? Scope { get; set; }
+    public AtomExpression(ExpressionKind kind, Scope scope) : base(kind, scope) { }
 }
+

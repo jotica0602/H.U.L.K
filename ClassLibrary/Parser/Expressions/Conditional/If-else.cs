@@ -6,43 +6,32 @@ public class IfElse : Expression
     public Expression LeftNode;
     public Expression RightNode;
 
-    public IfElse(ExpressionKind kind, Expression condition, Expression leftNode, Expression rightNode):base(kind)
+    public IfElse(ExpressionKind kind, Expression condition, Expression leftNode, Expression rightNode, Scope scope) : base(kind, scope)
     {
         Condition = condition;
         LeftNode = leftNode;
         RightNode = rightNode;
     }
 
-
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
+    public override Scope? Scope { get; set; }
 
-    public override void CheckSemantic()
+    public override void Evaluate(Scope scope)
     {
-        return;
-    }
+        Condition!.Evaluate(scope);
 
-    public override object? Evaluate(Scope scope) 
-    {
-        Condition.Evaluate(scope);
-        if(Condition.Value is true)
+        if (Condition.Value is true)
         {
-            Value = LeftNode.Evaluate(scope);
+            Value = LeftNode!.GetValue();
             Kind = LeftNode.Kind;
-            return LeftNode.GetValue();
         }
-        else 
+        else
         {
-            Value = RightNode.Evaluate(scope);
+            Value = RightNode!.GetValue();
             Kind = RightNode.Kind;
-            return RightNode.GetValue();
         }
     }
 
     public override object? GetValue() => Value;
-
-    public override void VisitNode()
-    {
-        throw new NotImplementedException();
-    }
 }

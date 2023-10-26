@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Runtime.CompilerServices;
 
 namespace ClassLibrary;
@@ -8,12 +9,12 @@ public class ASTBuilder
     List<Token> tokens;
     int currentTokenIndex;
     Token currentToken;
-    private Scope scope;
+    private Scope GlobalScope;
 
     public ASTBuilder(List<Token> tokens, Scope scope)
     {
         this.tokens = tokens;
-        this.scope = scope;
+        GlobalScope = scope;
         currentTokenIndex = 0;
         currentToken = tokens[currentTokenIndex];
     }
@@ -38,7 +39,7 @@ public class ASTBuilder
             throw new Exception();
         }
 
-        Expression ast = BuildLevel1();
+        Expression ast = BuildLevel1(GlobalScope);
 
         if (currentToken.Kind != TokenKind.Semicolon)
         {
@@ -49,170 +50,171 @@ public class ASTBuilder
         return ast;
     }
 
-    private Expression BuildLevel1()
+    private Expression BuildLevel1(Scope scope)
     {
-        Expression leftNode = BuildLevel2();
+        Expression leftNode = BuildLevel2(scope);
 
         while (IsALevel1Operator(currentToken.Kind))
         {
             TokenKind operation = currentToken.Kind;
             Consume(1);
-            Expression rightNode = BuildLevel2();
-            leftNode = BuildBinaryExpression(leftNode, operation, rightNode);
+            Expression rightNode = BuildLevel2(scope);
+            leftNode = BuildBinaryExpression(leftNode, operation, rightNode, scope);
         }
 
         Expression node = leftNode;
         return node;
     }
 
-    private Expression BuildLevel2()
+    private Expression BuildLevel2(Scope scope)
     {
-        Expression leftNode = BuildLevel3();
+        Expression leftNode = BuildLevel3(scope);
 
         while (IsALevel2Operator(currentToken.Kind))
         {
             TokenKind operation = currentToken.Kind;
             Consume(1);
-            Expression rightNode = BuildLevel3();
-            leftNode = BuildBinaryExpression(leftNode, operation, rightNode);
+            Expression rightNode = BuildLevel3(scope);
+            leftNode = BuildBinaryExpression(leftNode, operation, rightNode, scope);
         }
 
         Expression node = leftNode;
         return node;
     }
 
-    private Expression BuildLevel3()
+    private Expression BuildLevel3(Scope scope)
     {
-        Expression leftNode = BuildLevel4();
+        Expression leftNode = BuildLevel4(scope);
 
         while (IsALevel3Operator(currentToken.Kind))
         {
             TokenKind operation = currentToken.Kind;
             Consume(1);
-            Expression rightNode = BuildLevel4();
-            leftNode = BuildBinaryExpression(leftNode, operation, rightNode);
+            Expression rightNode = BuildLevel4(scope);
+            leftNode = BuildBinaryExpression(leftNode, operation, rightNode, scope);
         }
 
         Expression node = leftNode;
         return node;
     }
 
-    private Expression BuildLevel4()
+    private Expression BuildLevel4(Scope scope)
     {
-        Expression leftNode = BuildLevel5();
+        Expression leftNode = BuildLevel5(scope);
 
         while (IsALevel4Operator(currentToken.Kind))
         {
             TokenKind operation = currentToken.Kind;
             Consume(1);
-            Expression rightNode = BuildLevel5();
-            leftNode = BuildBinaryExpression(leftNode, operation, rightNode);
+            Expression rightNode = BuildLevel5(scope);
+            leftNode = BuildBinaryExpression(leftNode, operation, rightNode, scope);
         }
 
         Expression node = leftNode;
         return node;
     }
 
-    private Expression BuildLevel5()
+    private Expression BuildLevel5(Scope scope)
     {
-        Expression leftNode = GetAtom();
+        Expression leftNode = GetAtom(scope);
 
         while (IsALevel5Operator(currentToken.Kind))
         {
             TokenKind operation = currentToken.Kind;
             Consume(1);
-            Expression rightNode = GetAtom();
-            leftNode = BuildBinaryExpression(leftNode, operation, rightNode);
+            Expression rightNode = GetAtom(scope);
+            leftNode = BuildBinaryExpression(leftNode, operation, rightNode, scope);
         }
 
         Expression node = leftNode;
         return node;
     }
 
-    Expression BuildBinaryExpression(Expression leftNode, TokenKind operation, Expression expressionNode)
+
+    Expression BuildBinaryExpression(Expression leftNode, TokenKind operation, Expression rightNode, Scope scope)
     {
         switch (operation)
         {
             case TokenKind.And:
-                Expression and = new And(ExpressionKind.Bool, operation, leftNode, expressionNode);
-                and.CheckSemantic();
+                BinaryExpression and = new And(ExpressionKind.Bool, operation, leftNode, rightNode, scope.MakeChild());
+                and.CheckNodesSemantic(leftNode, operation, rightNode);
                 leftNode = and;
                 break;
 
             case TokenKind.Or:
-                Expression or = new Or(ExpressionKind.Bool, operation, leftNode, expressionNode);
-                or.CheckSemantic();
+                BinaryExpression or = new Or(ExpressionKind.Bool, operation, leftNode, rightNode, scope.MakeChild());
+                or.CheckNodesSemantic(leftNode, operation, rightNode);
                 leftNode = or;
                 break;
 
             case TokenKind.GreatherOrEquals:
-                Expression greatherOrEquals = new GreatherOrEquals(ExpressionKind.Bool, operation, leftNode, expressionNode);
-                greatherOrEquals.CheckSemantic();
+                BinaryExpression greatherOrEquals = new GreatherOrEquals(ExpressionKind.Bool, operation, leftNode, rightNode, scope.MakeChild());
+                greatherOrEquals.CheckNodesSemantic(leftNode, operation, rightNode);
                 leftNode = greatherOrEquals;
                 break;
 
             case TokenKind.GreatherThan:
-                Expression greatherThan = new GreatherThan(ExpressionKind.Bool, operation, leftNode, expressionNode);
-                greatherThan.CheckSemantic();
+                BinaryExpression greatherThan = new GreatherThan(ExpressionKind.Bool, operation, leftNode, rightNode, scope.MakeChild());
+                greatherThan.CheckNodesSemantic(leftNode, operation, rightNode);
                 leftNode = greatherThan;
                 break;
 
             case TokenKind.LessOrEquals:
-                Expression lessOrEquals = new LessOrEquals(ExpressionKind.Bool, operation, leftNode, expressionNode);
-                lessOrEquals.CheckSemantic();
+                BinaryExpression lessOrEquals = new LesserOrEquals(ExpressionKind.Bool, operation, leftNode, rightNode, scope.MakeChild());
+                lessOrEquals.CheckNodesSemantic(leftNode, operation, rightNode);
                 leftNode = lessOrEquals;
                 break;
 
             case TokenKind.LessThan:
-                Expression lesserThan = new LesserThan(ExpressionKind.Bool, operation, leftNode, expressionNode);
-                lesserThan.CheckSemantic();
+                BinaryExpression lesserThan = new LesserThan(ExpressionKind.Bool, operation, leftNode, rightNode, scope.MakeChild());
+                lesserThan.CheckNodesSemantic(leftNode, operation, rightNode);
                 leftNode = lesserThan;
                 break;
 
             case TokenKind.EqualsTo:
-                Expression equalsTo = new EqualsTo(ExpressionKind.Bool, operation, leftNode, expressionNode);
-                equalsTo.CheckSemantic();
+                BinaryExpression equalsTo = new EqualsTo(ExpressionKind.Bool, operation, leftNode, rightNode, scope.MakeChild());
+                equalsTo.CheckNodesSemantic(leftNode, operation, rightNode);
                 leftNode = equalsTo;
                 break;
 
             case TokenKind.Addition:
-                Expression addition = new Addition(ExpressionKind.Number, operation, leftNode, expressionNode);
-                addition.CheckSemantic();
+                BinaryExpression addition = new Addition(ExpressionKind.Number, operation, leftNode, rightNode, scope.MakeChild());
+                addition.CheckNodesSemantic(leftNode, operation, rightNode);
                 leftNode = addition;
                 break;
 
             case TokenKind.Substraction:
-                Expression substraction = new Substraction(ExpressionKind.Number, operation, leftNode, expressionNode);
-                substraction.CheckSemantic();
+                BinaryExpression substraction = new Substraction(ExpressionKind.Number, operation, leftNode, rightNode, scope.MakeChild());
+                substraction.CheckNodesSemantic(leftNode, operation, rightNode);
                 leftNode = substraction;
                 break;
 
             case TokenKind.Concat:
-                Expression concatenation = new Concat(ExpressionKind.String, operation, leftNode, expressionNode);
+                BinaryExpression concatenation = new Concat(ExpressionKind.String, operation, leftNode, rightNode, scope.MakeChild());
                 leftNode = concatenation;
                 break;
 
             case TokenKind.Multiplication:
-                Expression Multiplication = new Multiplication(ExpressionKind.Number, operation, leftNode, expressionNode);
-                Multiplication.CheckSemantic();
+                BinaryExpression Multiplication = new Multiplication(ExpressionKind.Number, operation, leftNode, rightNode, scope.MakeChild());
+                Multiplication.CheckNodesSemantic(leftNode, operation, rightNode);
                 leftNode = Multiplication;
                 break;
 
             case TokenKind.Division:
-                Expression Division = new Division(ExpressionKind.Number, operation, leftNode, expressionNode);
-                Division.CheckSemantic();
+                BinaryExpression Division = new Division(ExpressionKind.Number, operation, leftNode, rightNode, scope.MakeChild());
+                Division.CheckNodesSemantic(leftNode, operation, rightNode);
                 leftNode = Division;
                 break;
 
             case TokenKind.Modulus:
-                Expression Modulus = new Modulus(ExpressionKind.Number, operation, leftNode, expressionNode);
-                Modulus.CheckSemantic();
+                BinaryExpression Modulus = new Modulus(ExpressionKind.Number, operation, leftNode, rightNode, scope.MakeChild());
+                Modulus.CheckNodesSemantic(leftNode, operation, rightNode);
                 leftNode = Modulus;
                 break;
 
             case TokenKind.Power:
-                BinaryExpression power = new Power(ExpressionKind.Number, operation, leftNode, expressionNode);
-                power.CheckSemantic();
+                BinaryExpression power = new Power(ExpressionKind.Number, operation, leftNode, rightNode, scope.MakeChild());
+                power.CheckNodesSemantic(leftNode, operation, rightNode);
                 leftNode = power;
                 break;
         }
@@ -220,58 +222,73 @@ public class ASTBuilder
         return leftNode;
     }
 
-    Expression BuildConditionalExpression(IfElse conditionalExpression)
+    Expression BuildConditionalExpression(IfElse conditionalExpression, Scope localScope)
     {
-        conditionalExpression.Condition = BuildLevel1();
+        conditionalExpression.Condition = BuildLevel1(localScope);
         if (currentToken.Kind == TokenKind.ElseKeyWord)
         {
             Console.WriteLine($"!syntax error: if-else expression is incomplete.");
             throw new Exception();
         }
-        conditionalExpression.LeftNode = BuildLevel1();
+        conditionalExpression.LeftNode = BuildLevel1(localScope);
         Expect(TokenKind.ElseKeyWord);
-        conditionalExpression.RightNode = BuildLevel1();
+        conditionalExpression.RightNode = BuildLevel1(localScope);
         return conditionalExpression;
     }
 
-    Expression BuildLetInStructure()
+    Expression BuildLetInStructure(Scope localScope)
     {
         Consume(1);
-        Dictionary<string, Expression> enviroment = new Dictionary<string, Expression>();
-        scope.Vars.Add(enviroment);
-        CreateVar();
-        LetIn expression = new LetIn(ExpressionKind.Temp, null!);
+        LetIn expression = new(ExpressionKind.Temp, null!, localScope.MakeChild());
+        CreateVar(expression.Scope!);
         Expect(TokenKind.InKeyWord);
-        expression.Execution = BuildLevel1();
-        expression.Execution.CheckSemantic();
+        expression.Instruction = BuildLevel1(expression.Scope!);
         return expression;
     }
 
-    void CreateVar()
+    void CreateVar(Scope localScope)
     {
         Expect(TokenKind.Identifier);
-        string varName = tokens[currentTokenIndex-1].GetName();
+        string varName = tokens[currentTokenIndex - 1].GetName();
         Expect(TokenKind.Equals);
-        scope.Vars.Last().Add(varName, BuildLevel1());
-        // Expression varExpression = BuildLevel1();
-        // varExpression.CheckSemantic();
+        localScope.Vars.Add(varName, BuildLevel1(localScope));
 
         Console.WriteLine(currentToken);
 
         if (currentToken.Kind == TokenKind.Comma)
         {
             Consume(1);
-            CreateVar();
+            CreateVar(localScope);
         }
     }
 
+    // void BuildFunction(Scope localScope)
+    // {
+    //     Consume(1);
+    //     Expect(TokenKind.Identifier);
+    //     string functionName = tokens[currentTokenIndex-1].GetName();
+    //     Function body = new Function(ExpressionKind.Temp,null!,null!);
+    //     GlobalScope.Functions.Add(functionName,body);
+    //     Console.WriteLine(functionName);
+    //     Expect(TokenKind.LeftParenthesis);
+    //     GetArgs(functionName);
 
-    private Expression GetAtom()
+    // }
+
+    // void GetArgs(string functionName, Scope functionScope)
+    // {
+        
+    // }
+
+
+    private Expression GetAtom(Scope localScope)
     {
         switch (currentToken.Kind)
         {
+
+            // <Basic Data Types
             case TokenKind.Number:
-                Number num = new Number(ExpressionKind.Number, (double)currentToken.GetValue());
+                Number num = new(ExpressionKind.Number, (double)currentToken.GetValue(), null!);
                 Console.WriteLine($"{currentToken}");
                 Consume(1);
                 return num;
@@ -279,53 +296,86 @@ public class ASTBuilder
             case TokenKind.LeftParenthesis:
                 Console.WriteLine($"{currentToken}");
                 Consume(1);
-                Expression expression = BuildLevel1();
+                Expression expression = BuildLevel1(localScope);
                 Console.WriteLine($"{currentToken}");
                 Expect(TokenKind.RightParenthesis);
                 return expression;
 
             case TokenKind.String:
                 Console.WriteLine($"{currentToken}");
-                String str = new String(ExpressionKind.String, (string)currentToken.GetValue());
+                String str = new(ExpressionKind.String, (string)currentToken.GetValue(), null!);
                 Consume(1);
                 return str;
 
             case TokenKind.TrueKeyWord:
                 Console.WriteLine($"{currentToken}");
-                Bool bool_ = new Bool(ExpressionKind.Bool, true);
+                Bool bool_ = new(ExpressionKind.Bool, true, null!);
                 Consume(1);
                 return bool_;
 
             case TokenKind.FalseKeyWord:
                 Console.WriteLine($"{currentToken}");
-                bool_ = new Bool(ExpressionKind.Bool, false);
+                bool_ = new Bool(ExpressionKind.Bool, false, null!);
                 Consume(1);
                 return bool_;
+            //>
 
-            case TokenKind.IfKeyWord:
-                Console.Write($"{currentToken}");
+            // <Unary Expressions
+            case TokenKind.Substraction:
+                Console.WriteLine($"{currentToken.Kind}");
+                Negative negativeNumber = new Negative(ExpressionKind.Number, localScope.MakeChild(), null!);
                 Consume(1);
-                IfElse conditionalExpression = new IfElse(ExpressionKind.Temp, null!, null!, null!);
-                return BuildConditionalExpression(conditionalExpression);
+                negativeNumber.Node = BuildLevel1(negativeNumber.Scope!);
+                negativeNumber.CheckNodeSemantic(negativeNumber.Node);
+                return negativeNumber;
+
+            case TokenKind.Not:
+                Console.WriteLine($"{currentToken.Kind}");
+                Not notExpression = new Not(ExpressionKind.Number, localScope.MakeChild(), null!);
+                Consume(1);
+                notExpression.Node = BuildLevel1(notExpression.Scope!);
+                notExpression.CheckNodeSemantic(notExpression.Node);
+                return notExpression;
+            //>
+
+            // <Conditional Expressions
+            case TokenKind.IfKeyWord:
+                Console.WriteLine($"{currentToken}");
+                Consume(1);
+                IfElse conditionalExpression = new(ExpressionKind.Temp, null!, null!, null!, localScope);
+                return BuildConditionalExpression(conditionalExpression, localScope);
 
             case TokenKind.ElseKeyWord:
                 Console.WriteLine($"!syntax error: if-else structure is not balanced");
                 throw new Exception();
+            //>
 
+            // <Assignment Expressions
             case TokenKind.LetKeyWord:
                 Console.WriteLine($"{currentToken}");
-                return BuildLetInStructure();
+                return BuildLetInStructure(localScope);
+            //>
 
+            // <Variables
             case TokenKind.Identifier:
                 Console.WriteLine($"{currentToken}");
-                Identifier variable = new Identifier(ExpressionKind.Identifier,currentToken.GetName(),null!,scope);
-                variable.CheckSemantic();
+                Variable variable = new(ExpressionKind.Temp, currentToken.GetName(), localScope);
+                variable.CheckSemantic(localScope);
                 Consume(1);
                 return variable;
+            //>
 
+            // <Function declarations
+            case TokenKind.FunctionKeyWord:
+                // BuildFunction(localScope);
+                return null!;
+            //>
+
+            // <Incomplete expressions
             default:
                 Console.WriteLine("Invalid Expression");
                 throw new Exception();
+                //>
         }
     }
 
