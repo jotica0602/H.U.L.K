@@ -5,7 +5,7 @@ public abstract class Expression
 
     public abstract object? Value { get; set; }
 
-    public abstract Scope? Scope { get; set; }
+    public virtual Scope? Scope { get; set; }
 
     public Expression(ExpressionKind kind, Scope scope)
     {
@@ -13,7 +13,7 @@ public abstract class Expression
         Scope = scope;
     }
 
-    public abstract void Evaluate(Scope scope);
+    public virtual void Evaluate(Scope scope) {return;}
 
     public abstract object? GetValue();
 }

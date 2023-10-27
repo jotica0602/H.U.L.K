@@ -17,6 +17,7 @@ public class Not : UnaryExpression
         if (Node.Kind != ExpressionKind.Bool && Node.Kind != ExpressionKind.Temp)
         {
             Console.WriteLine($"!semantic error: operator \"{TokenKind.Not}\" cannot be applied to \"{Node.Kind}\".");
+            throw new Exception();
         }
     }
 

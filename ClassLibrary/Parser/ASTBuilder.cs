@@ -266,20 +266,80 @@ public class ASTBuilder
     // {
     //     Consume(1);
     //     Expect(TokenKind.Identifier);
-    //     string functionName = tokens[currentTokenIndex-1].GetName();
-    //     Function body = new Function(ExpressionKind.Temp,null!,null!);
-    //     GlobalScope.Functions.Add(functionName,body);
-    //     Console.WriteLine(functionName);
+
+    //     string functionName = tokens[currentTokenIndex - 1].GetName();
+    //     Scope functionScope = new Scope();
+    //     functionScope.Parent = GlobalScope;
+    //     List<string> args = new List<string>();
+    //     Function foo = new Function(ExpressionKind.Temp, functionScope, functionName, null!);
+    //     GlobalScope.Functions.Add(functionName, foo);
+
     //     Expect(TokenKind.LeftParenthesis);
-    //     GetArgs(functionName);
+    //     GetArgs(functionScope);
+    //     Expect(TokenKind.RightParenthesis);
+    //     Expect(TokenKind.Arrow);
 
+    //     Expression functionBody = BuildLevel1(functionScope);
+    //     foo.Body = functionBody;
+    //     GlobalScope.Functions.Remove(functionName);
+    //     GlobalScope.Functions.Add(functionName, foo);
     // }
 
-    // void GetArgs(string functionName, Scope functionScope)
+    private void GetArgs(Scope functionScope)
+    {
+        Expect(TokenKind.Identifier);
+        functionScope.Vars.Add(tokens[currentTokenIndex - 1].GetName(), null!);
+        if (currentToken.Kind == TokenKind.Comma)
+        {
+            Consume(1);
+            GetArgs(functionScope);
+        }
+    }
+
+    // Expression FunctionInstance(Scope localScope)
     // {
-        
+    //     string functionName = currentToken.GetName();
+    //     List<Expression> argsValues = new List<Expression>();
+    //     List<string> argsKeys = new List<string>();
+    //     Scope functionScope = new Scope();
+    //     functionScope.Parent = GlobalScope;
+    //     Consume(2);
+    //     SetArgs(localScope, ref argsValues);
+    //     Expect(TokenKind.RightParenthesis);
+    //     Function functionInstance = new Function(ExpressionKind.Temp, functionScope, functionName, null!);
+    //     functionInstance.CheckSemantic(GlobalScope, functionName);
+    //     MatchArgs(functionInstance, functionName, argsKeys, argsValues);
+
+    //     return functionInstance;
     // }
 
+    // private void SetArgs(Scope localScope, ref List<Expression> args)
+    // {
+    //     args.Add(BuildLevel1(localScope));
+    //     if (currentToken.Kind == TokenKind.Comma)
+    //     {
+    //         Consume(1);
+    //         SetArgs(localScope, ref args);
+    //     }
+    // }
+
+    // private void MatchArgs(Function functionInstance, string functionName, List<string> argsKeys, List<Expression> argsValues)
+    // {
+    //     foreach (var arg in GlobalScope.Functions[functionName].Scope!.Vars)
+    //     {
+    //         argsKeys.Add(arg.Key);
+    //     }
+
+    //     for (int i = 0; i < argsKeys.Count; i++)
+    //         functionInstance.Scope!.Vars.Add(argsKeys[i], argsValues[i]);
+
+    //     if (argsValues.Count != argsKeys.Count)
+    //     {
+    //         Console.WriteLine($"!semantic error: function \"{functionName}\" recieves {argsKeys.Count} argument(s) but {argsValues.Count} were given.");
+    //         throw new Exception();
+    //     }
+
+    // }
 
     private Expression GetAtom(Scope localScope)
     {
@@ -288,7 +348,7 @@ public class ASTBuilder
 
             // <Basic Data Types
             case TokenKind.Number:
-                Number num = new(ExpressionKind.Number, (double)currentToken.GetValue(), null!);
+                Number num = new(ExpressionKind.Number, (double)currentToken.GetValue());
                 Console.WriteLine($"{currentToken}");
                 Consume(1);
                 return num;
@@ -325,7 +385,7 @@ public class ASTBuilder
                 Console.WriteLine($"{currentToken.Kind}");
                 Negative negativeNumber = new Negative(ExpressionKind.Number, localScope.MakeChild(), null!);
                 Consume(1);
-                negativeNumber.Node = BuildLevel1(negativeNumber.Scope!);
+                negativeNumber.Node = BuildLevel3(negativeNumber.Scope!);
                 negativeNumber.CheckNodeSemantic(negativeNumber.Node);
                 return negativeNumber;
 
@@ -359,6 +419,7 @@ public class ASTBuilder
             // <Variables
             case TokenKind.Identifier:
                 Console.WriteLine($"{currentToken}");
+                // if (tokens[currentTokenIndex + 1].Kind == TokenKind.LeftParenthesis) { return FunctionInstance(localScope); }
                 Variable variable = new(ExpressionKind.Temp, currentToken.GetName(), localScope);
                 variable.CheckSemantic(localScope);
                 Consume(1);

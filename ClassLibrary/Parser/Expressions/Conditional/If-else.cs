@@ -23,11 +23,13 @@ public class IfElse : Expression
 
         if (Condition.Value is true)
         {
+            LeftNode.Evaluate(scope);
             Value = LeftNode!.GetValue();
             Kind = LeftNode.Kind;
         }
         else
         {
+            RightNode.Evaluate(scope);
             Value = RightNode!.GetValue();
             Kind = RightNode.Kind;
         }

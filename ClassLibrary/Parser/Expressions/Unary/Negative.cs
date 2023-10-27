@@ -17,6 +17,7 @@ public class Negative : UnaryExpression
         if(Node.Kind != ExpressionKind.Number && Node.Kind != ExpressionKind.Temp)
         {
             Console.WriteLine($"!semantic error: operator \"{TokenKind.Substraction}\" cannot be applied to \"{Node.Kind}\".");
+            throw new Exception();
         }
     }
 

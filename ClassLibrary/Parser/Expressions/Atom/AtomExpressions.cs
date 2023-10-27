@@ -2,12 +2,11 @@ namespace ClassLibrary;
 
 public class Number : AtomExpression
 {
-    public Number(ExpressionKind kind, double value, Scope scope) : base(kind, scope)
+    public Number(ExpressionKind kind, double value) : base(kind,null!)
     {
         Value = value;
     }
 
-    public override Scope? Scope { get; set; }
     public override ExpressionKind Kind { get => ExpressionKind.Number; set { } }
     public override object? Value { get; set; }
 
@@ -20,7 +19,7 @@ public class Number : AtomExpression
 
 public class Bool : AtomExpression
 {
-    public Bool(ExpressionKind kind, bool value, Scope scope) : base(kind, scope)
+    public Bool(ExpressionKind kind, bool value, Scope scope) : base(kind, null!)
     {
         Value = value;
     }
@@ -35,7 +34,7 @@ public class Bool : AtomExpression
 
 public class String : AtomExpression
 {
-    public String(ExpressionKind kind, string value, Scope scope) : base(kind, scope)
+    public String(ExpressionKind kind, string value, Scope scope) : base(kind, null!)
     {
         Value = value;
     }

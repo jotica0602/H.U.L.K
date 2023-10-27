@@ -26,7 +26,7 @@ class Interpreter
                 // "function fact(n) => if(n<=1) 1 else n*fact(n-1);","fact(5);"
                 // el problema esta en los argumentos
 
-                string[] strings = { "3==\"pedro\";" };
+                string[] strings = { "function f(x) => x;", "let x = 1 in f(x);" };
                 var Lexer = new Lexer(strings[i]);
 
                 if (strings[i] == string.Empty)
@@ -77,6 +77,7 @@ class Interpreter
             {
                 Console.Write(">");
                 string sourceCode = Console.ReadLine()!;
+
                 if (sourceCode == string.Empty)
                     throw new Exception("Empty Entry");
 
@@ -103,9 +104,10 @@ class Interpreter
 
     private static void SetUpGlobalScope(Scope GlobalScope)
     {
-        GlobalScope.Vars.Add("E", new Number(ExpressionKind.Number, Math.E, null!));
-        GlobalScope.Vars.Add("Pi", new Number(ExpressionKind.Number, Math.PI, null!));
-        GlobalScope.Vars.Add("Tau", new Number(ExpressionKind.Number, Math.Tau, null!));
+        GlobalScope.Vars.Add("E", new Number(ExpressionKind.Number, Math.E));
+        GlobalScope.Vars.Add("Pi", new Number(ExpressionKind.Number, Math.PI));
+        GlobalScope.Vars.Add("Tau", new Number(ExpressionKind.Number, Math.Tau));
+        // GlobalScope.Functions.Add("print",new Function(ExpressionKind.Temp))
     }
 
     private static void Welcome()
