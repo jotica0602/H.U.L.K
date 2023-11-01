@@ -7,13 +7,13 @@ public abstract class Expression
 
     public virtual Scope? Scope { get; set; }
 
-    public Expression(ExpressionKind kind, Scope scope)
+    public Expression(Scope scope)
     {
-        Kind = kind;
         Scope = scope;
     }
 
-    public virtual void Evaluate(Scope scope) {return;}
+    public virtual void Evaluate(Scope scope) { return; }
 
+    public override string ToString() => $"{Value}";
     public abstract object? GetValue();
 }

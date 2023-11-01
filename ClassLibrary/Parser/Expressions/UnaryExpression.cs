@@ -3,7 +3,7 @@ namespace ClassLibrary;
 public abstract class UnaryExpression : Expression
 {
     public abstract Expression Node { get; set; }
-    public UnaryExpression(ExpressionKind kind, Scope scope, Expression node) : base(kind, scope)
+    public UnaryExpression(Expression node) : base(null!)
     {
         Node = node;
     }

@@ -4,13 +4,13 @@ namespace ClassLibrary;
 
 public abstract class BinaryExpression : Expression
 {
-    public Expression? LeftNode;
-    public Expression? RightNode;
+    public Expression LeftNode;
+    public Expression RightNode;
     public TokenKind Operator;
     public override Scope? Scope { get; set; }
 
 
-    public BinaryExpression(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) : base(kind, scope)
+    public BinaryExpression(TokenKind operator_, Expression leftNode, Expression rightNode) : base(null!)
     {
         LeftNode = leftNode;
         RightNode = rightNode;

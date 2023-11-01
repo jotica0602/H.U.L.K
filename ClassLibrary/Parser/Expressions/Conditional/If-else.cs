@@ -6,11 +6,12 @@ public class IfElse : Expression
     public Expression LeftNode;
     public Expression RightNode;
 
-    public IfElse(ExpressionKind kind, Expression condition, Expression leftNode, Expression rightNode, Scope scope) : base(kind, scope)
+    public IfElse(Expression condition, Expression leftNode, Expression rightNode, Scope scope) : base(scope)
     {
         Condition = condition;
         LeftNode = leftNode;
         RightNode = rightNode;
+        Kind = ExpressionKind.Temp;
     }
 
     public override ExpressionKind Kind { get; set; }

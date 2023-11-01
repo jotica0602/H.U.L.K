@@ -2,9 +2,10 @@ namespace ClassLibrary;
 
 public class Number : AtomExpression
 {
-    public Number(ExpressionKind kind, double value) : base(kind,null!)
+    public Number(double value) : base(null!)
     {
         Value = value;
+        Kind = ExpressionKind.Number;
     }
 
     public override ExpressionKind Kind { get => ExpressionKind.Number; set { } }
@@ -19,24 +20,26 @@ public class Number : AtomExpression
 
 public class Bool : AtomExpression
 {
-    public Bool(ExpressionKind kind, bool value, Scope scope) : base(kind, null!)
+    public Bool(bool value) : base(null!)
     {
         Value = value;
+        Kind = ExpressionKind.Bool;
     }
 
     public override ExpressionKind Kind { get => ExpressionKind.Bool; set { } }
     public override object? Value { get; set; }
 
     public override void Evaluate(Scope scope) { return; }
-
+    
     public override object? GetValue() => Value;
 }
 
 public class String : AtomExpression
 {
-    public String(ExpressionKind kind, string value, Scope scope) : base(kind, null!)
+    public String(string value) : base(null!)
     {
         Value = value;
+        Kind = ExpressionKind.String;
     }
 
     public override ExpressionKind Kind { get => ExpressionKind.String; set { } }
@@ -55,9 +58,10 @@ public class Variable : AtomExpression
     public override object? Value { get; set; }
     public override ExpressionKind Kind { get => ExpressionKind.Temp; set { } }
 
-    public Variable(ExpressionKind kind, string name, Scope scope) : base(kind, scope)
+    public Variable(string name, Scope scope) : base(scope)
     {
         Name = name;
+        Kind = ExpressionKind.Temp;
     }
 
     public void CheckSemantic(Scope localScope)
@@ -81,10 +85,12 @@ public class Variable : AtomExpression
     public override void Evaluate(Scope localScope)
     {
         Console.WriteLine($"{Name}");
-
-        if (localScope.Vars.ContainsKey(Name))
-        {
-            localScope.Vars[Name].Evaluate(localScope!);
+        // if the actual scope contains this variable name as a key
+        // we need to get the evaluation of that key's value
+        // so we give as a argument that key's value scope
+        if (localScope!.Vars.ContainsKey(Name))
+        {                                       //super important !
+            localScope.Vars[Name].Evaluate(localScope.Vars[Name].Scope!);
             Value = localScope.Vars[Name].GetValue();
             return;
 

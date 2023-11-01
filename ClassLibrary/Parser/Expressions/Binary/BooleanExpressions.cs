@@ -4,15 +4,15 @@ namespace ClassLibrary;
 
 public class And : BinaryExpression
 {
-    public And(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
+    public And(TokenKind operator_, Expression leftNode, Expression rightNode) :
+    base(operator_, leftNode, rightNode)
+    { 
+        Kind = ExpressionKind.Bool;
+    }
 
 
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
-
-
 
     public override void Evaluate(Scope scope)
     {
@@ -21,27 +21,43 @@ public class And : BinaryExpression
         Value = (bool)LeftNode.GetValue()! && (bool)RightNode.GetValue()!;
     }
 
+    public override void CheckNodesSemantic(Expression leftNode, TokenKind operator_, Expression rightNode)
+    {
+        if ((LeftNode.Kind != ExpressionKind.Bool && LeftNode.Kind != ExpressionKind.Temp) || (RightNode.Kind != ExpressionKind.Bool && RightNode.Kind != ExpressionKind.Temp))
+        {
+            Console.WriteLine($"!semantic error: operator \"{operator_}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode!.Kind}\" data types.");
+            throw new Exception();
+        }
+    }
+
     public override object? GetValue() => Value;
 }
 
 
 public class Or : BinaryExpression
 {
-    public Or(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
-
+    public Or(TokenKind operator_, Expression leftNode, Expression rightNode) :
+    base(operator_, leftNode, rightNode)
+    { 
+        Kind = ExpressionKind.Bool;
+    }
 
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
-
-
-
     public override void Evaluate(Scope scope)
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
         Value = (bool)LeftNode.GetValue()! || (bool)RightNode.GetValue()!;
+    }
+
+    public override void CheckNodesSemantic(Expression leftNode, TokenKind operator_, Expression rightNode)
+    {
+        if ((LeftNode.Kind != ExpressionKind.Bool && LeftNode.Kind != ExpressionKind.Temp) || (RightNode.Kind != ExpressionKind.Bool && RightNode.Kind != ExpressionKind.Temp))
+        {
+            Console.WriteLine($"!semantic error: operator \"{operator_}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode!.Kind}\" data types.");
+            throw new Exception();
+        }
     }
 
     public override object? GetValue() => Value;
@@ -52,17 +68,19 @@ public class Or : BinaryExpression
 #region Level 2
 public class EqualsTo : BinaryExpression
 {
-    public EqualsTo(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
-
+    public EqualsTo(TokenKind operator_, Expression leftNode, Expression rightNode) :
+    base(operator_, leftNode, rightNode)
+    { 
+        Kind = ExpressionKind.Bool;
+    }
 
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
 
     public override void CheckNodesSemantic(Expression leftNode, TokenKind operator_, Expression rightNode)
     {
-        if(LeftNode!.Kind != RightNode!.Kind)
+        if (LeftNode!.Kind == ExpressionKind.Temp || RightNode!.Kind == ExpressionKind.Temp) { return; }
+        if (LeftNode.Kind != RightNode.Kind)
         {
             Console.WriteLine($"!semantic error: operator \"{operator_}\" cannot be applied between different data types.");
             throw new Exception();
@@ -73,7 +91,7 @@ public class EqualsTo : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
-        Value = LeftNode.GetValue()!.ToString()! == RightNode.GetValue()!.ToString();
+        Value = LeftNode.GetValue()!.ToString() == RightNode.GetValue()!.ToString();
     }
 
     public override object? GetValue() => Value;
@@ -82,9 +100,11 @@ public class EqualsTo : BinaryExpression
 
 public class GreatherOrEquals : BinaryExpression
 {
-    public GreatherOrEquals(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
+    public GreatherOrEquals(TokenKind operator_, Expression leftNode, Expression rightNode) :
+    base(operator_, leftNode, rightNode)
+    { 
+        Kind = ExpressionKind.Bool;
+    }
 
 
     public override ExpressionKind Kind { get; set; }
@@ -94,8 +114,8 @@ public class GreatherOrEquals : BinaryExpression
 
     public override void Evaluate(Scope scope)
     {
-        LeftNode!.Evaluate(scope);
-        RightNode!.Evaluate(scope);
+        LeftNode.Evaluate(scope);
+        RightNode.Evaluate(scope);
         Value = (double)LeftNode.GetValue()! >= (double)RightNode.GetValue()!;
     }
 
@@ -105,9 +125,11 @@ public class GreatherOrEquals : BinaryExpression
 
 public class GreatherThan : BinaryExpression
 {
-    public GreatherThan(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
+   public GreatherThan(TokenKind operator_, Expression leftNode, Expression rightNode) :
+    base(operator_, leftNode, rightNode)
+    { 
+        Kind = ExpressionKind.Bool;
+    }
 
 
     public override ExpressionKind Kind { get; set; }
@@ -128,9 +150,11 @@ public class GreatherThan : BinaryExpression
 
 public class LesserOrEquals : BinaryExpression
 {
-    public LesserOrEquals(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
+    public LesserOrEquals(TokenKind operator_, Expression leftNode, Expression rightNode) :
+    base(operator_, leftNode, rightNode)
+    { 
+        Kind = ExpressionKind.Bool;
+    }
 
 
     public override ExpressionKind Kind { get; set; }
@@ -149,15 +173,15 @@ public class LesserOrEquals : BinaryExpression
 
 public class LesserThan : BinaryExpression
 {
-    public LesserThan(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
+    public LesserThan(TokenKind operator_, Expression leftNode, Expression rightNode) :
+    base(operator_, leftNode, rightNode)
+    { 
+        Kind = ExpressionKind.Bool;
+    }
 
 
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
-
-
 
     public override void Evaluate(Scope scope)
     {

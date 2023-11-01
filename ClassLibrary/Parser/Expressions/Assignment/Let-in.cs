@@ -9,8 +9,9 @@ public class LetIn : Expression
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
 
-    public LetIn(ExpressionKind kind, Expression instruction, Scope scope) : base(kind, scope)
+    public LetIn(Expression instruction, Scope scope) : base(scope)
     {
+        Kind = ExpressionKind.Temp;
         Instruction = instruction;
     }
 
@@ -18,7 +19,6 @@ public class LetIn : Expression
     {
         Instruction.Evaluate(Scope!);
         Value = Instruction.GetValue();
-
         if (Value is bool)   { Kind = ExpressionKind.Bool;   }
         if (Value is string) { Kind = ExpressionKind.String; }
         if (Value is double) { Kind = ExpressionKind.Number; }

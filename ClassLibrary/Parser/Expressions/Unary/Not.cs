@@ -7,8 +7,9 @@ public class Not : UnaryExpression
     public override object? Value { get; set; }
     public override Scope? Scope { get; set; }
 
-    public Not(ExpressionKind kind, Scope scope, Expression node) : base(kind, scope, node)
+    public Not(Expression node) : base(node)
     {
+        Kind = ExpressionKind.Bool;
         Node = node;
     }
 

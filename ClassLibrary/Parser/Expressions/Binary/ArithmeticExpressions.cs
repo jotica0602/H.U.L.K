@@ -4,9 +4,11 @@ namespace ClassLibrary;
 
 public class Addition : BinaryExpression
 {
-    public Addition(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
+    public Addition(TokenKind operator_, Expression leftNode, Expression rightNode) :
+    base(operator_, leftNode, rightNode)
+    {
+        Kind = ExpressionKind.Number;
+    }
 
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
@@ -23,9 +25,11 @@ public class Addition : BinaryExpression
 
 public class Substraction : BinaryExpression
 {
-    public Substraction(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
+    public Substraction(TokenKind operator_, Expression leftNode, Expression rightNode) :
+    base(operator_, leftNode, rightNode)
+    {
+        Kind = ExpressionKind.Number;
+    }
 
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
@@ -47,9 +51,11 @@ public class Substraction : BinaryExpression
 
 public class Multiplication : BinaryExpression
 {
-    public Multiplication(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
+    public Multiplication(TokenKind operator_, Expression leftNode, Expression rightNode) :
+    base(operator_, leftNode, rightNode)
+    {
+        Kind = ExpressionKind.Number;
+    }
 
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
@@ -58,6 +64,7 @@ public class Multiplication : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+
         Value = (double)LeftNode.GetValue()! * (double)RightNode.GetValue()!;
     }
 
@@ -66,9 +73,11 @@ public class Multiplication : BinaryExpression
 
 public class Division : BinaryExpression
 {
-    public Division(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
+    public Division(TokenKind operator_, Expression leftNode, Expression rightNode) :
+    base(operator_, leftNode, rightNode)
+    {
+        Kind = ExpressionKind.Number;
+    }
 
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
@@ -85,9 +94,11 @@ public class Division : BinaryExpression
 
 public class Modulus : BinaryExpression
 {
-    public Modulus(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
+    public Modulus(TokenKind operator_, Expression leftNode, Expression rightNode) :
+    base(operator_, leftNode, rightNode)
+    {
+        Kind = ExpressionKind.Number;
+    }
 
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
@@ -109,9 +120,11 @@ public class Modulus : BinaryExpression
 
 public class Power : BinaryExpression
 {
-    public Power(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
+    public Power(TokenKind operator_, Expression leftNode, Expression rightNode) :
+    base(operator_, leftNode, rightNode)
+    {
+        Kind = ExpressionKind.Number;
+    }
 
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
@@ -120,7 +133,7 @@ public class Power : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
-        Value = Math.Pow((double)LeftNode.GetValue()!,(double)RightNode.GetValue()!);
+        Value = Math.Pow((double)LeftNode.GetValue()!, (double)RightNode.GetValue()!);
     }
 
     public override object? GetValue() => Value;

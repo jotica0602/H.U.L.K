@@ -7,8 +7,9 @@ public class Negative : UnaryExpression
     public override object? Value { get; set; }
     public override Scope? Scope { get; set; }
 
-    public Negative(ExpressionKind kind, Scope scope, Expression node) : base(kind, scope, node)
+    public Negative(Expression node) : base(node)
     {
+        Kind = ExpressionKind.Number;
         Node = node;
     }
 

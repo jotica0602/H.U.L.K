@@ -1,10 +1,12 @@
 namespace ClassLibrary;
 
-public class Concat : BinaryExpression
+public class Concatenation : BinaryExpression
 {
-    public Concat(ExpressionKind kind, TokenKind operator_, Expression leftNode, Expression rightNode, Scope scope) :
-    base(kind, operator_, leftNode, rightNode, scope)
-    { }
+    public Concatenation(TokenKind operator_, Expression leftNode, Expression rightNode) :
+     base(operator_, leftNode, rightNode)
+    {
+        Kind = ExpressionKind.String;
+    }
 
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
@@ -13,7 +15,7 @@ public class Concat : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
-        Value = LeftNode.GetValue()!.ToString()! +  RightNode.GetValue()!.ToString()!;
+        Value = LeftNode.GetValue()!.ToString()! + RightNode.GetValue()!.ToString()!;
     }
 
     public override object? GetValue() => Value;

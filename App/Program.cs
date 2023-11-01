@@ -19,18 +19,12 @@ class Interpreter
         {
             try
             {
-                // Automatic tests
-                // "let a = 42 in (let b = 4 in 4) + a;"
-                // "let a = (let b = 42 in b) in b ;"
-                // "function f(x) => x;","f(5);"
-                // "function fact(n) => if(n<=1) 1 else n*fact(n-1);","fact(5);"
-                // el problema esta en los argumentos
+                string[] strings = { "if(3==3 & false) 1 else 0;" };
 
-                string[] strings = { "function f(x) => x;", "let x = 1 in f(x);" };
                 var Lexer = new Lexer(strings[i]);
 
                 if (strings[i] == string.Empty)
-                {
+                {   
                     Console.WriteLine("Empty Entry");
                     throw new Exception();
                 }
@@ -89,7 +83,11 @@ class Interpreter
                 Stopwatch crono = new Stopwatch();
                 crono.Start();
                 Expression Tree = ast.Build();
-                Console.WriteLine(Tree.GetValue());
+                if (!(Tree is null))
+                {
+                    Tree.Evaluate(GlobalScope);
+                    Console.WriteLine(Tree.GetValue());
+                }
                 crono.Stop();
                 Console.WriteLine(crono.Elapsed);
             }
@@ -104,9 +102,9 @@ class Interpreter
 
     private static void SetUpGlobalScope(Scope GlobalScope)
     {
-        GlobalScope.Vars.Add("E", new Number(ExpressionKind.Number, Math.E));
-        GlobalScope.Vars.Add("Pi", new Number(ExpressionKind.Number, Math.PI));
-        GlobalScope.Vars.Add("Tau", new Number(ExpressionKind.Number, Math.Tau));
+        GlobalScope.Vars.Add("E", new Number(Math.E));
+        GlobalScope.Vars.Add("Pi", new Number(Math.PI));
+        GlobalScope.Vars.Add("Tau", new Number(Math.Tau));
         // GlobalScope.Functions.Add("print",new Function(ExpressionKind.Temp))
     }
 
