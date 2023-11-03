@@ -36,6 +36,15 @@ public class FunctionCall : Function
         GlobalScope = globalScope;
     }
 
+    public void CheckSemantic()
+    {
+        if(!GlobalScope.Functions.ContainsKey(Name))
+        {
+            Console.WriteLine($"!semantic error: function \"{Name}\" does not exists.");
+            throw new Exception();
+        }
+    }
+
     public void CheckArgsCount(Scope scope)
     {
         if (ArgsValues.Count != scope.Functions[Name].ArgsVars!.Count)
@@ -52,8 +61,8 @@ public class FunctionCall : Function
 
         for (int i = 0; i < ArgsValues.Count; i++)
             child.Vars.Add(GlobalScope.Functions[Name].ArgsVars![i], ArgsValues[i]);
-        
-        foreach(var arg in child.Vars)
+
+        foreach (var arg in child.Vars)
             child.Vars[arg.Key].Evaluate(scope);
 
         ASTBuilder builder = new ASTBuilder(GlobalScope.Functions[Name].Tokens!, child);

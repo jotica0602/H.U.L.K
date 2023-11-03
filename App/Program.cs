@@ -13,14 +13,13 @@ class Interpreter
 
     public static void Auto()
     {
-        // "(let a = 1 in a) + (let b = 2 in b) > 30 | if(let c = (let x = 5*6 in x) in c == 30) 1 else 0;"
         int i = 0;
         Scope GlobalScope = new Scope();
         SetUpGlobalScope(GlobalScope);
         while (true)
         {
 
-            string[] strings = { "function f(x)=> if(x>1) f(x-1) + f(x-2) else 1;","f(5);" };
+            string[] strings = { "function fib(n)=> if(n>1) fib(n-1) + fib(n-2) else 1 ;","f(100);" };
 
             var Lexer = new Lexer(strings[i]);
 
@@ -56,7 +55,7 @@ class Interpreter
     {
         Scope GlobalScope = new Scope();
         SetUpGlobalScope(GlobalScope);
-        // Console.Clear();
+        Console.Clear();
         Welcome();
         Console.WriteLine("Write your code below :) ");
 
@@ -71,20 +70,18 @@ class Interpreter
                     throw new Exception("Empty Entry");
 
                 var Lexer = new Lexer(sourceCode);
-
                 List<Token> tokens = Lexer.Tokenize();
 
-                ASTBuilder ast = new ASTBuilder(tokens, GlobalScope);
+                ASTBuilder builder = new ASTBuilder(tokens, GlobalScope);
                 Stopwatch crono = new Stopwatch();
-                crono.Start();
-                Expression Tree = ast.Build();
-                if (!(Tree is null))
+
+                Expression AST = builder.Build();
+
+                if (AST is not null)
                 {
-                    Tree.Evaluate(GlobalScope);
-                    Console.WriteLine(Tree.GetValue());
+                    AST.Evaluate(GlobalScope);
+                    Console.WriteLine(AST.Value);
                 }
-                crono.Stop();
-                Console.WriteLine(crono.Elapsed);
             }
 
             catch (Exception)
@@ -100,7 +97,6 @@ class Interpreter
         GlobalScope.Vars.Add("E", new Number(Math.E));
         GlobalScope.Vars.Add("Pi", new Number(Math.PI));
         GlobalScope.Vars.Add("Tau", new Number(Math.Tau));
-        // GlobalScope.Functions.Add("print",new Function(ExpressionKind.Temp))
     }
 
     private static void Welcome()

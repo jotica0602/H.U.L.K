@@ -298,6 +298,7 @@ public class ASTBuilder
     {
         string functId = currentToken.GetName();
         FunctionCall foo = new FunctionCall(functId, new List<Expression>(), GlobalScope);
+        foo.CheckSemantic();
         Consume(2);
         GetArgs(localScope, foo.ArgsValues);
         foo.CheckArgsCount(localScope);
@@ -427,7 +428,7 @@ public class ASTBuilder
             default:
                 Console.WriteLine("Invalid Expression");
                 throw new Exception();
-                //>
+            //>
         }
     }
 
