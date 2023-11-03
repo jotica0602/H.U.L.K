@@ -30,7 +30,7 @@ public class Bool : AtomExpression
     public override object? Value { get; set; }
 
     public override void Evaluate(Scope scope) { return; }
-    
+
     public override object? GetValue() => Value;
 }
 
@@ -58,7 +58,7 @@ public class Variable : AtomExpression
     public override object? Value { get; set; }
     public override ExpressionKind Kind { get => ExpressionKind.Temp; set { } }
 
-    public Variable(string name, Scope scope) : base(scope)
+    public Variable(string name) : base(null!)
     {
         Name = name;
         Kind = ExpressionKind.Temp;
@@ -85,15 +85,21 @@ public class Variable : AtomExpression
     public override void Evaluate(Scope localScope)
     {
         Console.WriteLine($"{Name}");
+        //localScope.Vars[Name].Scope is null ? localScope : localScope.Vars[Name].Scope!
         // if the actual scope contains this variable name as a key
         // we need to get the evaluation of that key's value
         // so we give as a argument that key's value scope
         if (localScope!.Vars.ContainsKey(Name))
-        {                                       //super important !
-            localScope.Vars[Name].Evaluate(localScope.Vars[Name].Scope!);
-            Value = localScope.Vars[Name].GetValue();
-            return;
-
+        {
+            //super important !
+            if (localScope.Vars[Name].Value is not null)
+                Value = localScope.Vars[Name].Value;
+            
+            else
+            {
+                localScope.Vars[Name].Evaluate(localScope.Vars[Name].Scope!);
+                Value = localScope.Vars[Name].Value;
+            }
         }
         else
         {

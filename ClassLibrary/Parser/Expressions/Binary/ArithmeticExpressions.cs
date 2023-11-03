@@ -17,7 +17,7 @@ public class Addition : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
-        Value = (double)LeftNode.GetValue()! + (double)RightNode.GetValue()!;
+        Value = (double)LeftNode.Value! + (double)RightNode.Value!;
     }
 
     public override object? GetValue() => Value;
@@ -38,7 +38,7 @@ public class Substraction : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
-        Value = (double)LeftNode.GetValue()! - (double)RightNode.GetValue()!;
+        Value = (double)LeftNode.Value! - (double)RightNode.Value!;
     }
 
     public override object? GetValue() => Value;
@@ -62,10 +62,11 @@ public class Multiplication : BinaryExpression
 
     public override void Evaluate(Scope scope)
     {
+
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
 
-        Value = (double)LeftNode.GetValue()! * (double)RightNode.GetValue()!;
+        Value = (double)LeftNode.Value! * (double)RightNode.Value!;
     }
 
     public override object? GetValue() => Value;
@@ -86,7 +87,7 @@ public class Division : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
-        Value = (double)LeftNode.GetValue()! / (double)RightNode.GetValue()!;
+        Value = (double)LeftNode.Value! / (double)RightNode.Value!;
     }
 
     public override object? GetValue() => Value;
@@ -107,7 +108,7 @@ public class Modulus : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
-        Value = (double)LeftNode.GetValue()! % (double)RightNode.GetValue()!;
+        Value = (double)LeftNode.Value! % (double)RightNode.Value!;
     }
 
     public override object? GetValue() => Value;
@@ -133,7 +134,7 @@ public class Power : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
-        Value = Math.Pow((double)LeftNode.GetValue()!, (double)RightNode.GetValue()!);
+        Value = Math.Pow((double)LeftNode.Value!, (double)RightNode.Value!);
     }
 
     public override object? GetValue() => Value;

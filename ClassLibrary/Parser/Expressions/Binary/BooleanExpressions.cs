@@ -6,7 +6,7 @@ public class And : BinaryExpression
 {
     public And(TokenKind operator_, Expression leftNode, Expression rightNode) :
     base(operator_, leftNode, rightNode)
-    { 
+    {
         Kind = ExpressionKind.Bool;
     }
 
@@ -18,6 +18,11 @@ public class And : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+        if (LeftNode.Kind != ExpressionKind.Bool || RightNode.Kind != ExpressionKind.Bool)
+        {
+            Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
+            throw new Exception();
+        }
         Value = (bool)LeftNode.GetValue()! && (bool)RightNode.GetValue()!;
     }
 
@@ -38,7 +43,7 @@ public class Or : BinaryExpression
 {
     public Or(TokenKind operator_, Expression leftNode, Expression rightNode) :
     base(operator_, leftNode, rightNode)
-    { 
+    {
         Kind = ExpressionKind.Bool;
     }
 
@@ -48,6 +53,11 @@ public class Or : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+        if (LeftNode.Kind != ExpressionKind.Bool || RightNode.Kind != ExpressionKind.Bool)
+        {
+            Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
+            throw new Exception();
+        }
         Value = (bool)LeftNode.GetValue()! || (bool)RightNode.GetValue()!;
     }
 
@@ -70,7 +80,7 @@ public class EqualsTo : BinaryExpression
 {
     public EqualsTo(TokenKind operator_, Expression leftNode, Expression rightNode) :
     base(operator_, leftNode, rightNode)
-    { 
+    {
         Kind = ExpressionKind.Bool;
     }
 
@@ -102,7 +112,7 @@ public class GreatherOrEquals : BinaryExpression
 {
     public GreatherOrEquals(TokenKind operator_, Expression leftNode, Expression rightNode) :
     base(operator_, leftNode, rightNode)
-    { 
+    {
         Kind = ExpressionKind.Bool;
     }
 
@@ -125,9 +135,9 @@ public class GreatherOrEquals : BinaryExpression
 
 public class GreatherThan : BinaryExpression
 {
-   public GreatherThan(TokenKind operator_, Expression leftNode, Expression rightNode) :
-    base(operator_, leftNode, rightNode)
-    { 
+    public GreatherThan(TokenKind operator_, Expression leftNode, Expression rightNode) :
+     base(operator_, leftNode, rightNode)
+    {
         Kind = ExpressionKind.Bool;
     }
 
@@ -152,7 +162,7 @@ public class LesserOrEquals : BinaryExpression
 {
     public LesserOrEquals(TokenKind operator_, Expression leftNode, Expression rightNode) :
     base(operator_, leftNode, rightNode)
-    { 
+    {
         Kind = ExpressionKind.Bool;
     }
 
@@ -175,7 +185,7 @@ public class LesserThan : BinaryExpression
 {
     public LesserThan(TokenKind operator_, Expression leftNode, Expression rightNode) :
     base(operator_, leftNode, rightNode)
-    { 
+    {
         Kind = ExpressionKind.Bool;
     }
 

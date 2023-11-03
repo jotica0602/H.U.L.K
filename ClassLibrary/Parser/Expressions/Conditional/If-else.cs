@@ -6,7 +6,7 @@ public class IfElse : Expression
     public Expression LeftNode;
     public Expression RightNode;
 
-    public IfElse(Expression condition, Expression leftNode, Expression rightNode, Scope scope) : base(scope)
+    public IfElse(Expression condition, Expression leftNode, Expression rightNode) : base(null!)
     {
         Condition = condition;
         LeftNode = leftNode;
@@ -25,7 +25,7 @@ public class IfElse : Expression
         if (Condition.Value is true)
         {
             LeftNode.Evaluate(scope);
-            Value = LeftNode!.GetValue();
+            Value = LeftNode.Value;
             Kind = LeftNode.Kind;
         }
         else

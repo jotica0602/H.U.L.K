@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using ClassLibrary;
+
 class Interpreter
 {
     static void Main()
@@ -12,47 +13,41 @@ class Interpreter
 
     public static void Auto()
     {
+        // "(let a = 1 in a) + (let b = 2 in b) > 30 | if(let c = (let x = 5*6 in x) in c == 30) 1 else 0;"
         int i = 0;
         Scope GlobalScope = new Scope();
         SetUpGlobalScope(GlobalScope);
         while (true)
         {
-            try
+
+            string[] strings = { "function f(x)=> if(x>1) f(x-1) + f(x-2) else 1;","f(5);" };
+
+            var Lexer = new Lexer(strings[i]);
+
+            if (strings[i] == string.Empty)
             {
-                string[] strings = { "if(3==3 & false) 1 else 0;" };
-
-                var Lexer = new Lexer(strings[i]);
-
-                if (strings[i] == string.Empty)
-                {   
-                    Console.WriteLine("Empty Entry");
-                    throw new Exception();
-                }
-
-                List<Token> tokens = Lexer.Tokenize();
-
-                ASTBuilder AST = new ASTBuilder(tokens, GlobalScope);
-                Stopwatch crono = new Stopwatch();
-                crono.Start();
-                Expression Tree = AST.Build();
-
-                if (!(Tree is null))
-                {
-                    Tree.Evaluate(GlobalScope);
-                    Console.WriteLine(Tree.GetValue());
-                }
-
-                crono.Stop();
-                Console.WriteLine(crono.Elapsed);
-                i++;
-                if (i >= strings.Length) { break; }
+                Console.WriteLine("Empty Entry");
+                throw new Exception();
             }
 
-            catch (Exception)
+            List<Token> tokens = Lexer.Tokenize();
+
+            ASTBuilder AST = new ASTBuilder(tokens, GlobalScope);
+            Stopwatch crono = new Stopwatch();
+            crono.Start();
+            Expression Tree = AST.Build();
+
+            if (!(Tree is null))
             {
-                Console.WriteLine("Error");
-                break;
+                Tree.Evaluate(GlobalScope);
+                Console.WriteLine(Tree.GetValue());
             }
+
+            crono.Stop();
+            Console.WriteLine(crono.Elapsed);
+            i++;
+            if (i >= strings.Length) { break; }
+
         }
     }
 

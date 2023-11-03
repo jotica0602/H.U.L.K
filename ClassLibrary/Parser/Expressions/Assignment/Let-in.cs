@@ -7,10 +7,12 @@ public class LetIn : Expression
     public override Scope? Scope { get; set; }
     public Expression Instruction;
     public override ExpressionKind Kind { get; set; }
+    public Dictionary<string, Expression> Variables { get; set; }
     public override object? Value { get; set; }
 
     public LetIn(Expression instruction, Scope scope) : base(scope)
     {
+        Variables = new Dictionary<string, Expression>();
         Kind = ExpressionKind.Temp;
         Instruction = instruction;
     }
@@ -19,7 +21,8 @@ public class LetIn : Expression
     {
         Instruction.Evaluate(Scope!);
         Value = Instruction.GetValue();
-        if (Value is bool)   { Kind = ExpressionKind.Bool;   }
+
+        if (Value is bool) { Kind = ExpressionKind.Bool; }
         if (Value is string) { Kind = ExpressionKind.String; }
         if (Value is double) { Kind = ExpressionKind.Number; }
     }

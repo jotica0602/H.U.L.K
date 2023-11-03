@@ -1,8 +1,3 @@
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
-
 namespace ClassLibrary;
 
 public class ASTBuilder
@@ -228,7 +223,8 @@ public class ASTBuilder
 
     Expression BuildConditionalExpression(Scope localScope)
     {
-        IfElse conditionalExpression = new(null!, null!, null!, localScope);
+        Consume(1);
+        IfElse conditionalExpression = new(null!, null!, null!);
         conditionalExpression.Condition = BuildLevel1(localScope);
         if (currentToken.Kind == TokenKind.ElseKeyWord)
         {
@@ -244,28 +240,81 @@ public class ASTBuilder
     Expression BuildLetInStructure(Scope localScope)
     {
         Consume(1);
-        LetIn expression = new(null!, localScope.MakeChild());
-        CreateVar(expression.Scope!);
+        LetIn letInExpression = new(null!, localScope.MakeChild());
+        CreateVar(letInExpression.Scope!);
         Expect(TokenKind.InKeyWord);
-        expression.Instruction = BuildLevel1(expression.Scope!);
-        return expression;
+        letInExpression.Instruction = BuildLevel1(letInExpression.Scope!);
+        return letInExpression;
     }
 
-    void CreateVar(Scope localScope)
+    void CreateVar(Scope letInScope)
     {
         Expect(TokenKind.Identifier);
         string varName = PreviousToken().GetName();
         Expect(TokenKind.Equals);
-        localScope.Vars.Add(varName, BuildLevel1(localScope));
+        letInScope.Vars.Add(varName, BuildLevel1(letInScope));
 
         Console.WriteLine(currentToken);
 
         if (currentToken.Kind == TokenKind.Comma)
         {
             Consume(1);
-            CreateVar(localScope);
+            CreateVar(letInScope);
         }
     }
+
+    private void BuildFunction()
+    {
+        Consume(1);
+        Expect(TokenKind.Identifier);
+
+        string functionName = PreviousToken().GetName();
+        FunctionBody body = new FunctionBody();
+
+        Expect(TokenKind.LeftParenthesis);
+        SetArgs(body.ArgsVars!);
+        Expect(TokenKind.RightParenthesis);
+        Expect(TokenKind.Arrow);
+
+        for(int i = currentTokenIndex;i<tokens.Count;i++)
+           body.Tokens!.Add(tokens[i]);
+
+        GlobalScope.Functions.Add(functionName,body);
+        Consume(tokens.Count - currentTokenIndex -1);
+    }
+
+    private void SetArgs(List<string> argsVariables)
+    {
+        Expect(TokenKind.Identifier);
+        argsVariables.Add(PreviousToken().GetName());
+        if (currentToken.Kind == TokenKind.Comma)
+        {
+            Consume(1);
+            SetArgs(argsVariables);
+        }
+    }
+
+    private Function FunctionInstance(Scope localScope)
+    {
+        string functId = currentToken.GetName();
+        FunctionCall foo = new FunctionCall(functId, new List<Expression>(), GlobalScope);
+        Consume(2);
+        GetArgs(localScope, foo.ArgsValues);
+        foo.CheckArgsCount(localScope);
+        Expect(TokenKind.RightParenthesis);
+        return foo;
+    }
+
+    private void GetArgs(Scope localScope, List<Expression> arguments)
+    {
+        arguments.Add(BuildLevel1(localScope));
+        if (currentToken.Kind == TokenKind.Comma)
+        {
+            Consume(1);
+            GetArgs(localScope, arguments);
+        }
+    }
+
 
     private Expression GetAtom(Scope localScope)
     {
@@ -345,7 +394,6 @@ public class ASTBuilder
             // <Conditional Expressions
             case TokenKind.IfKeyWord:
                 Console.WriteLine($"{currentToken}");
-                Consume(1);
                 return BuildConditionalExpression(localScope);
 
             case TokenKind.ElseKeyWord:
@@ -362,8 +410,8 @@ public class ASTBuilder
             // <Variables
             case TokenKind.Identifier:
                 Console.WriteLine($"{currentToken}");
-                // if (NextToken().Kind == TokenKind.LeftParenthesis) { return FunctionInstance(localScope); }
-                Variable variable = new(currentToken.GetName(), localScope);
+                if (NextToken().Kind == TokenKind.LeftParenthesis) { return FunctionInstance(localScope); }
+                Variable variable = new(currentToken.GetName());
                 variable.CheckSemantic(localScope);
                 Consume(1);
                 return variable;
@@ -371,7 +419,8 @@ public class ASTBuilder
 
             // <Function declarations
             case TokenKind.FunctionKeyWord:
-                throw new NotImplementedException();
+                BuildFunction();
+                return null!;
             //>
 
             // <Incomplete expressions
@@ -381,6 +430,7 @@ public class ASTBuilder
                 //>
         }
     }
+
 
     private void Expect(TokenKind expected)
     {
