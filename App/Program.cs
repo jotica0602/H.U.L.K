@@ -8,8 +8,8 @@ class Interpreter
 {
     static void Main()
     {
-        Run();
-        // Auto();
+        // Run();
+        Auto();
     }
 
     public static void Auto()
@@ -20,7 +20,13 @@ class Interpreter
         while (true)
         {
 
-            string[] strings = { "function tan(x) => sin(x)/cos(x);","tan(45);" };
+            string[] strings =
+            { 
+                
+                "function fib(n) => if (n > 1) fib(n-1) + fib(n-2) else 1;",
+                "let x = 3 in print(fib(2));"
+        
+            };
 
             var Lexer = new Lexer(strings[i]);
 
@@ -40,7 +46,7 @@ class Interpreter
             if (Tree is not null)
             {
                 Tree.Evaluate(GlobalScope);
-                Console.WriteLine(Tree.GetValue());
+                Console.WriteLine(Tree.Value);
             }
 
             crono.Stop();
@@ -97,7 +103,7 @@ class Interpreter
     private static void SetUpGlobalScope(Scope GlobalScope)
     {
         GlobalScope.Vars.Add("E", new Number(Math.E));
-        GlobalScope.Vars.Add("Pi", new Number(Math.PI));
+        GlobalScope.Vars.Add("PI", new Number(Math.PI));
         GlobalScope.Vars.Add("Tau", new Number(Math.Tau));
     }
 

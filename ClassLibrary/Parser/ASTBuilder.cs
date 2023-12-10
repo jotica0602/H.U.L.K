@@ -223,6 +223,7 @@ public class ASTBuilder
             case TokenKind.Identifier:
                 // Console.WriteLine($"{currentToken}");
                 if (IsABuiltInFunction(currentToken)) { return BuiltInFunctionCall(localScope); }
+                // if (IsAGlobalVariable(currentToken)) {return GlobalVariable}
                 if (NextToken().Kind == TokenKind.LeftParenthesis) { return FunctionInstance(localScope); }
                 Variable variable = new(currentToken.GetName());
                 variable.CheckSemantic(localScope);

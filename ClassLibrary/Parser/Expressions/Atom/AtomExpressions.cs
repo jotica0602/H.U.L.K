@@ -85,19 +85,27 @@ public class Variable : AtomExpression
 
     public override void Evaluate(Scope localScope)
     {
-        // Console.WriteLine($"{Name}");
-
-        //localScope.Vars[Name].Scope is null ? localScope : localScope.Vars[Name].Scope!
         // if the actual scope contains this variable name as a key
         // we need to get the evaluation of that key's value
         // so we give as a argument that key's value scope
-
+        switch (Name)
+        {
+            case "E":
+                Value = Math.E;
+                return;
+            case "PI":
+                Value = Math.PI;
+                return;
+            case "Tau":
+                Value = Math.Tau;
+                return;
+        }
+        
         if (localScope!.Vars.ContainsKey(Name))
         {
             //super important !
             if (localScope.Vars[Name].Value is not null)
                 Value = localScope.Vars[Name].Value;
-
             else
             {
                 localScope.Vars[Name].Evaluate(localScope.Vars[Name].Scope!);
