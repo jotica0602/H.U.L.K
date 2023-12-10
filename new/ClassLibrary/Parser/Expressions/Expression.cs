@@ -15,6 +15,5 @@ public abstract class Expression
     public virtual void Evaluate(Scope scope) { return; }
 
     public override string ToString() => $"{Value}";
-    
     public abstract object? GetValue();
 }

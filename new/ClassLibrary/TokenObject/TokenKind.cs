@@ -79,6 +79,18 @@ public enum TokenKind
 
     Arrow,
 
+    // Functions
+
+    sin,
+
+    cos,
+
+    log,
+
+    rand,
+   
+    print,
+    
     // Utility 
     EndOfFile,
 

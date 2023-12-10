@@ -1,15 +1,16 @@
 ﻿using System.Diagnostics;
+using System.Formats.Asn1;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using ClassLibrary;
 
 class Interpreter
 {
     static void Main()
     {
-        // Run();
-        Auto();
+        Run();
+        // Auto();
     }
-
 
     public static void Auto()
     {
@@ -19,7 +20,7 @@ class Interpreter
         while (true)
         {
 
-            string[] strings = { "function fib(n)=> if(n>1) fib(n-1) + fib(n-2) else 1 ;","f(100);" };
+            string[] strings = { "function tan(x) => sin(x)/cos(x);","tan(45);" };
 
             var Lexer = new Lexer(strings[i]);
 
@@ -36,16 +37,16 @@ class Interpreter
             crono.Start();
             Expression Tree = AST.Build();
 
-            if (!(Tree is null))
+            if (Tree is not null)
             {
                 Tree.Evaluate(GlobalScope);
                 Console.WriteLine(Tree.GetValue());
             }
 
             crono.Stop();
-            Console.WriteLine(crono.Elapsed);
+            Console.WriteLine($"Time elapsed {crono.Elapsed}");
             i++;
-            if (i >= strings.Length) { break; }
+            if (i == strings.Length) { break; }
 
         }
     }
@@ -58,6 +59,7 @@ class Interpreter
         Console.Clear();
         Welcome();
         Console.WriteLine("Write your code below :) ");
+
 
         while (true)
         {
@@ -99,6 +101,8 @@ class Interpreter
         GlobalScope.Vars.Add("Tau", new Number(Math.Tau));
     }
 
+    delegate void Evaluate();
+
     private static void Welcome()
     {
         Console.WriteLine(@" 
@@ -106,7 +110,7 @@ class Interpreter
                                 /\ \/\ \     /\ \/\ \     /\ \       /\ \/\ \                                  
                                 \ \ \_\ \    \ \ \ \ \    \ \ \      \ \ \/'/'                                 
                                  \ \  _  \    \ \ \ \ \    \ \ \  __  \ \ , <                                  
-                                  \ \ \ \ \  __\ \ \_\ \  __\ \ \L\ \__\ \ \\`\                                
+                                  \ \ \ \ \  __\ \ \_\ \  __\ \ \_\ \__\ \ \\`\                                
                                    \ \_\ \_\/\_\\ \_____\/\_\\ \____/\_\\ \_\ \_\                              
                                     \/_/\/_/\/_/ \/_____/\/_/ \/___/\/_/ \/_/\/_/                              
                                                                                
@@ -119,8 +123,6 @@ class Interpreter
                         \/_____/\/_/\/_/\/__/\/____/ \/_/   \ \ \/  \/_/ \/____/ \/__/\/____/ \/_/ 
                                                              \ \_\                                 
                                                               \/_/
-                                                                                                        ");
+                                                                                                    ");
     }
 }
-
-

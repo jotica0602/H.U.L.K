@@ -9,6 +9,7 @@ public abstract class BinaryExpression : Expression
     public TokenKind Operator;
     public override Scope? Scope { get; set; }
 
+
     public BinaryExpression(TokenKind operator_, Expression leftNode, Expression rightNode) : base(null!)
     {
         LeftNode = leftNode;

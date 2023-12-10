@@ -4,15 +4,14 @@ namespace ClassLibrary;
 
 public class Addition : BinaryExpression
 {
-    public override ExpressionKind Kind { get; set; }
-
-    public override object? Value { get; set; }
-
     public Addition(TokenKind operator_, Expression leftNode, Expression rightNode) :
     base(operator_, leftNode, rightNode)
     {
         Kind = ExpressionKind.Number;
     }
+
+    public override ExpressionKind Kind { get; set; }
+    public override object? Value { get; set; }
 
     public override void Evaluate(Scope scope)
     {
@@ -23,7 +22,6 @@ public class Addition : BinaryExpression
 
     public override object? GetValue() => Value;
 }
-
 
 public class Substraction : BinaryExpression
 {

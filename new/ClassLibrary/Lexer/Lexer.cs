@@ -317,6 +317,18 @@ public class Lexer
             case "if":
                 return new Keyword(TokenKind.IfKeyWord);
 
+            case "sin":
+                return new Keyword(TokenKind.sin);
+
+            case "cos":
+                return new Keyword(TokenKind.cos);
+
+            case "log":
+                return new Keyword(TokenKind.log);
+
+            case "print":
+                return new Keyword(TokenKind.print);
+
             default:
                 return new Keyword(TokenKind.ElseKeyWord);
 
@@ -373,7 +385,8 @@ public class Lexer
             {
                 "let", "function",  "else",
                 "in" , "if",        "true",
-                "false"
+                "false", "log", "sin", "cos",
+                "print"
             };
 
         return keywords.Contains(idkind);
