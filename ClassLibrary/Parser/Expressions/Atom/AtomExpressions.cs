@@ -57,7 +57,7 @@ public class Variable : AtomExpression
     public string Name;
 
     public override object? Value { get; set; }
-    public override ExpressionKind Kind { get => ExpressionKind.Temp; set { } }
+    public override ExpressionKind Kind { get; set; }
 
     public Variable(string name) : base(null!)
     {
@@ -67,6 +67,16 @@ public class Variable : AtomExpression
 
     public void CheckSemantic(Scope localScope)
     {
+        switch (Name)
+        {
+            case "E":
+                return;
+            case "PI":
+                return;
+            case "Tau":
+                return;
+        }
+
         if (localScope is null)
         {
             Console.WriteLine($"!semantic error: variable \"{Name}\" does not exists.");
@@ -88,24 +98,29 @@ public class Variable : AtomExpression
         // if the actual scope contains this variable name as a key
         // we need to get the evaluation of that key's value
         // so we give as a argument that key's value scope
+
         switch (Name)
         {
             case "E":
+                Kind = ExpressionKind.Number;
                 Value = Math.E;
                 return;
             case "PI":
+                Kind = ExpressionKind.Number;
                 Value = Math.PI;
                 return;
             case "Tau":
+                Kind = ExpressionKind.Number;
                 Value = Math.Tau;
                 return;
         }
-        
+
         if (localScope!.Vars.ContainsKey(Name))
         {
             //super important !
             if (localScope.Vars[Name].Value is not null)
                 Value = localScope.Vars[Name].Value;
+
             else
             {
                 localScope.Vars[Name].Evaluate(localScope.Vars[Name].Scope!);
@@ -116,6 +131,20 @@ public class Variable : AtomExpression
         {
             Evaluate(localScope!.Parent!);
         }
+
+        switch (Value.GetType().ToString())
+        {
+            case "System.String":
+                Kind = ExpressionKind.String;
+                break;
+            case "System.Double":
+                Kind = ExpressionKind.Number;
+                break;
+            case "System.Bool":
+                Kind = ExpressionKind.Bool;
+                break;
+        }
+
     }
 
     public override object? GetValue() => Value;
@@ -142,7 +171,6 @@ public class PrintNode : AtomExpression
     public override void Evaluate(Scope scope)
     {
         Arguments[0].Evaluate(scope);
-        Console.WriteLine(Arguments[0].Value);
         Value = Arguments[0].Value;
         if (Value is string) Kind = ExpressionKind.String;
         if (Value is double) Kind = ExpressionKind.Number;
@@ -174,7 +202,7 @@ public class SinNode : AtomExpression
     public override void Evaluate(Scope scope)
     {
         Arguments[0].Evaluate(scope);
-        Value = Math.Sin((double)Arguments[0].Value! * Math.PI / 180);
+        Value = Math.Sin((double)Arguments[0].Value!);
     }
 
     public override object? GetValue() => Value;
@@ -202,7 +230,7 @@ public class CosNode : AtomExpression
     public override void Evaluate(Scope scope)
     {
         Arguments[0].Evaluate(scope);
-        Value = Math.Cos((double)Arguments[0].Value! * Math.PI / 180);
+        Value = Math.Cos((double)Arguments[0].Value!);
     }
 
     public override object? GetValue() => Value;

@@ -8,64 +8,121 @@ class Interpreter
 {
     static void Main()
     {
+        SetUp();
         // Run();
-        Auto();
+        // Auto();
+    }
+
+    public static void SetUp()
+    {
+        Console.Clear();
+        string text = "Do you want to:\n1)Write your code.\n2)Specify where your code is (only .txt).";
+        Console.WriteLine(text);
+        Console.Write(">");
+
+        string answer = Console.ReadLine()!;
+        while (answer != "1" && answer != "2")
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Red;
+            System.Console.WriteLine("Not a valid answer.");
+            Console.ResetColor();
+            System.Console.WriteLine(text);
+            Console.Write(">");
+            answer = Console.ReadLine()!;
+        }
+
+        Console.Clear();
+        switch (answer)
+        {
+            case "1":
+                Run();
+                break;
+            case "2":
+                LoadFile();
+                break;
+        }
     }
 
     public static void Auto()
     {
         int i = 0;
         Scope GlobalScope = new Scope();
-        SetUpGlobalScope(GlobalScope);
         while (true)
         {
-
-            string[] strings =
-            { 
-                
-                "function fib(n) => if (n > 1) fib(n-1) + fib(n-2) else 1;",
-                "let x = 3 in print(fib(2));"
-        
-            };
-
-            var Lexer = new Lexer(strings[i]);
-
-            if (strings[i] == string.Empty)
+            try
             {
-                Console.WriteLine("Empty Entry");
-                throw new Exception();
+
+                string[] input =
+                {
+                    "print(\"Hello World\");",
+                    "print((((1 + 2) ^ 3) * 4) / 5);",
+                    "print(sin(2 * PI) ^ 2 + cos(3 * PI / log(4, 64)));",
+                    "print(sin(PI));",
+                    "function tan(x) => sin(x)/cos(x);",
+                    "print(tan(PI/2));",
+                    "let x = PI/2 in print(tan(x));",
+                    "let number = 42, text = \"The meaning of life is \" in print(text @ number);",
+                    "let number = 42 in (let text = \"The meaning of life is \" in (print(text @ number)));",
+                    "print(7 + (let x = 2 in x * x));",
+                    "let a = 42 in if (a % 2 == 0) print(\"Even\") else print(\"odd\");",
+                    "let a = 42 in print(if (a % 2 == 0) \"even\" else \"odd\");",
+                    "function fib(n) => if (n > 1) fib(n-1) + fib(n-2) else 1;",
+                    "let x = 42 in print(x);",
+                    "fib(5);",
+                    "print(fib(6));",
+                    "let 14a = 5 in print(14a);",
+                    "let a = 5 in print(a;",
+                    "let a = 5 inn print(a);",
+                    "let a = in print(a);",
+                    "let a = \"hello world\" in print(a + 5);",
+                    "print(fib(\"hello world\"));",
+                    "print(fib(4,3));"
+
+                };
+
+                var Lexer = new Lexer(input[i]);
+
+                if (input[i] == string.Empty)
+                {
+                    Console.WriteLine("Empty Entry");
+                    throw new Exception();
+                }
+
+                List<Token> tokens = Lexer.Tokenize();
+
+                ASTBuilder AST = new ASTBuilder(tokens, GlobalScope);
+                Stopwatch crono = new Stopwatch();
+                crono.Start();
+                Expression Tree = AST.Build();
+
+                if (Tree is not null)
+                {
+                    Tree.Evaluate(GlobalScope);
+                    Console.WriteLine(Tree.GetValue());
+                }
+
+                crono.Stop();
+                // Console.WriteLine($"Time elapsed {crono.Elapsed}");
+                i++;
+                if (i == input.Length) { break; }
             }
-
-            List<Token> tokens = Lexer.Tokenize();
-
-            ASTBuilder AST = new ASTBuilder(tokens, GlobalScope);
-            Stopwatch crono = new Stopwatch();
-            crono.Start();
-            Expression Tree = AST.Build();
-
-            if (Tree is not null)
+            catch (Exception)
             {
-                Tree.Evaluate(GlobalScope);
-                Console.WriteLine(Tree.Value);
+                i++;
+                if (i == 22) break;
             }
-
-            crono.Stop();
-            Console.WriteLine($"Time elapsed {crono.Elapsed}");
-            i++;
-            if (i == strings.Length) { break; }
-
         }
+
     }
 
 
     public static void Run()
     {
         Scope GlobalScope = new Scope();
-        SetUpGlobalScope(GlobalScope);
         Console.Clear();
         Welcome();
         Console.WriteLine("Write your code below :) ");
-
 
         while (true)
         {
@@ -100,11 +157,35 @@ class Interpreter
         }
     }
 
-    private static void SetUpGlobalScope(Scope GlobalScope)
+    public static void LoadFile()
     {
-        GlobalScope.Vars.Add("E", new Number(Math.E));
-        GlobalScope.Vars.Add("PI", new Number(Math.PI));
-        GlobalScope.Vars.Add("Tau", new Number(Math.Tau));
+        Console.WriteLine("Write your code path below:");
+        Console.Write(">");
+        string path = Console.ReadLine();
+        var sourceCode = Path.Join(path);
+
+        string[] inputs = File.ReadAllLines(sourceCode);
+        Scope GlobalScope = new Scope();
+
+        for (int i = 0; i < inputs.Length; i++)
+        {
+            try
+            {
+                Lexer lexer = new Lexer(inputs[i]);
+                List<Token> tokens = lexer.Tokenize();
+                ASTBuilder AST = new ASTBuilder(tokens, GlobalScope);
+                Expression tree = AST.Build();
+                if (tree is not null)
+                {
+                    tree.Evaluate(GlobalScope);
+                    Console.WriteLine(tree.GetValue());
+                }
+            }
+            catch (Exception)
+            {
+                continue;
+            }
+        }
     }
 
     delegate void Evaluate();

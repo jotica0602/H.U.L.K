@@ -101,7 +101,7 @@ public class Lexer
 
             if (IsLetter(LookAhead(1)))
             {
-                Console.WriteLine($"!lexical error: {number + LookAhead(1)} is not a valid token.");
+                Console.WriteLine($"!lexical error: \"{number + LookAhead(1)}\" is not a valid token.");
                 throw new Exception();
             }
 

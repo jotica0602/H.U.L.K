@@ -29,7 +29,7 @@ public class ASTBuilder
     {
         if (tokens.Count <= 1)
         {
-            // Console.WriteLine("Invalid input.");
+            Console.WriteLine("Invalid input.");
             throw new Exception();
         }
 
@@ -37,10 +37,9 @@ public class ASTBuilder
 
         if (currentToken.Kind != TokenKind.Semicolon)
         {
-            // Console.WriteLine($"syntax error: operator or expression is missing after \"{currentToken}\"");
+            Console.WriteLine($"syntax error: operator or expression is missing after \"{currentToken}\"");
             throw new Exception();
         }
-
         return ast;
     }
 
@@ -209,7 +208,7 @@ public class ASTBuilder
                 return BuildConditionalExpression(localScope);
 
             case TokenKind.ElseKeyWord:
-                // Console.WriteLine($"!syntax error: if-else structure is not balanced");
+                Console.WriteLine($"!syntax error: if-else structure is not balanced");
                 throw new Exception();
             //>
 
@@ -223,7 +222,6 @@ public class ASTBuilder
             case TokenKind.Identifier:
                 // Console.WriteLine($"{currentToken}");
                 if (IsABuiltInFunction(currentToken)) { return BuiltInFunctionCall(localScope); }
-                // if (IsAGlobalVariable(currentToken)) {return GlobalVariable}
                 if (NextToken().Kind == TokenKind.LeftParenthesis) { return FunctionInstance(localScope); }
                 Variable variable = new(currentToken.GetName());
                 variable.CheckSemantic(localScope);
@@ -239,7 +237,7 @@ public class ASTBuilder
 
             // <Incomplete expressions
             default:
-                // Console.WriteLine("Invalid Expression");
+                Console.WriteLine($"!syntax error: unexpected token \"{currentToken}\" after \"{tokens[currentTokenIndex-1]}\" at index: {currentTokenIndex}.");
                 throw new Exception();
                 //>
         }
@@ -254,7 +252,7 @@ public class ASTBuilder
         conditionalExpression.Condition = BuildLevel1(localScope);
         if (currentToken.Kind == TokenKind.ElseKeyWord)
         {
-            // Console.WriteLine($"!syntax error: if-else expression is incomplete.");
+            Console.WriteLine($"!syntax error: if-else expression is incomplete.");
             throw new Exception();
         }
         conditionalExpression.LeftNode = BuildLevel1(localScope);
@@ -379,8 +377,6 @@ public class ASTBuilder
         {
             currentToken = tokens[currentTokenIndex];
         }
-
-        else return;
     }
 
     private void Consume()
@@ -403,7 +399,7 @@ public class ASTBuilder
     {
         if (currentToken.Kind != expected)
         {
-            // Console.WriteLine($"!syntax error: unexpected token: \"{currentToken}\" at index: {currentTokenIndex} expected: \"{expected}\".");
+            Console.WriteLine($"!syntax error: unexpected token: \"{currentToken}\" at index: {currentTokenIndex} expected: \"{expected}\".");
             throw new Exception();
         }
 

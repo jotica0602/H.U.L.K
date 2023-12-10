@@ -18,6 +18,13 @@ public class Addition : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+
+        if (LeftNode.Kind != ExpressionKind.Number || RightNode.Kind != ExpressionKind.Number)
+        {
+            Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
+            throw new Exception();
+        }
+
         Value = (double)LeftNode.Value! + (double)RightNode.Value!;
     }
 
@@ -40,6 +47,13 @@ public class Substraction : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+
+        if (LeftNode.Kind != ExpressionKind.Number || RightNode.Kind != ExpressionKind.Number)
+        {
+            Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
+            throw new Exception();
+        }
+
         Value = (double)LeftNode.Value! - (double)RightNode.Value!;
     }
 
@@ -68,6 +82,12 @@ public class Multiplication : BinaryExpression
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
 
+        if (LeftNode.Kind != ExpressionKind.Number || RightNode.Kind != ExpressionKind.Number)
+        {
+            Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
+            throw new Exception();
+        }
+
         Value = (double)LeftNode.Value! * (double)RightNode.Value!;
     }
 
@@ -89,6 +109,13 @@ public class Division : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+
+        if (LeftNode.Kind != ExpressionKind.Number || RightNode.Kind != ExpressionKind.Number)
+        {
+            Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
+            throw new Exception();
+        }
+
         Value = (double)LeftNode.Value! / (double)RightNode.Value!;
     }
 
@@ -110,6 +137,13 @@ public class Modulus : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+
+        if (LeftNode.Kind != ExpressionKind.Number || RightNode.Kind != ExpressionKind.Number)
+        {
+            Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
+            throw new Exception();
+        }
+
         Value = (double)LeftNode.Value! % (double)RightNode.Value!;
     }
 
@@ -136,6 +170,13 @@ public class Power : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+
+        if (LeftNode.Kind != ExpressionKind.Number || RightNode.Kind != ExpressionKind.Number)
+        {
+            Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
+            throw new Exception();
+        }
+
         Value = Math.Pow((double)LeftNode.Value!, (double)RightNode.Value!);
     }
 

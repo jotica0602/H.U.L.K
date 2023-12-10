@@ -13,10 +13,6 @@ public enum TokenKind
     
     ElseKeyWord, 
     
-    PI, 
-    
-    E,
-
     // Data Types
     String,
 

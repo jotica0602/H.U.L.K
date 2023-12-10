@@ -10,7 +10,6 @@ public class And : BinaryExpression
         Kind = ExpressionKind.Bool;
     }
 
-
     public override ExpressionKind Kind { get; set; }
     public override object? Value { get; set; }
 
@@ -18,11 +17,13 @@ public class And : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+
         if (LeftNode.Kind != ExpressionKind.Bool || RightNode.Kind != ExpressionKind.Bool)
         {
             Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
             throw new Exception();
         }
+
         Value = (bool)LeftNode.GetValue()! && (bool)RightNode.GetValue()!;
     }
 
@@ -53,11 +54,13 @@ public class Or : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+
         if (LeftNode.Kind != ExpressionKind.Bool || RightNode.Kind != ExpressionKind.Bool)
         {
             Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
             throw new Exception();
         }
+
         Value = (bool)LeftNode.GetValue()! || (bool)RightNode.GetValue()!;
     }
 
@@ -101,6 +104,13 @@ public class EqualsTo : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+
+        if (LeftNode.Kind != RightNode.Kind)
+        {
+            Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
+            throw new Exception();
+        }
+
         Value = LeftNode.GetValue()!.ToString() == RightNode.GetValue()!.ToString();
     }
 
@@ -126,6 +136,13 @@ public class GreatherOrEquals : BinaryExpression
     {
         LeftNode.Evaluate(scope);
         RightNode.Evaluate(scope);
+
+        if (LeftNode.Kind != ExpressionKind.Number || RightNode.Kind != ExpressionKind.Number)
+        {
+            Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
+            throw new Exception();
+        }
+
         Value = (double)LeftNode.GetValue()! >= (double)RightNode.GetValue()!;
     }
 
@@ -151,6 +168,13 @@ public class GreatherThan : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+
+        if (LeftNode.Kind != ExpressionKind.Number || RightNode.Kind != ExpressionKind.Number)
+        {
+            Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
+            throw new Exception();
+        }
+
         Value = (double)LeftNode.GetValue()! > (double)RightNode.GetValue()!;
     }
 
@@ -174,6 +198,13 @@ public class LesserOrEquals : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+
+        if (LeftNode.Kind != ExpressionKind.Number || RightNode.Kind != ExpressionKind.Number)
+        {
+            Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
+            throw new Exception();
+        }
+
         Value = (double)LeftNode.GetValue()! <= (double)RightNode.GetValue()!;
     }
 
@@ -197,6 +228,13 @@ public class LesserThan : BinaryExpression
     {
         LeftNode!.Evaluate(scope);
         RightNode!.Evaluate(scope);
+
+        if (LeftNode.Kind != ExpressionKind.Number || RightNode.Kind != ExpressionKind.Number)
+        {
+            Console.WriteLine($"!semantic error: \"{Operator}\" cannot be applied between \"{LeftNode.Kind}\" and \"{RightNode.Kind}\".");
+            throw new Exception();
+        }
+
         Value = (double)LeftNode.GetValue()! < (double)RightNode.GetValue()!;
     }
 
